@@ -12,7 +12,36 @@ MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是
 
 **# [官网下载](https://www.mongodb.com/download-center/community)**
 
+\1. 官网下载相应版本
+
 ![](./images/download.png)
+
+\2. 将压缩包解压至你想放的任意位置，我这里放在 “/usr/local/” 目录下，并重新命名为 “mongodb”。
+
+\3. 添加环境变量
+
+```shell
+$ vim ~/.bash_profile
+```
+
+\4. 添加如下代码
+
+```shell
+export PATH="$PATH":/usr/local/mongodb/bin 
+```
+
+\5. 查看版本，如果正常显示版本号则安装成功
+
+```shell
+$ mongo --version
+MongoDB shell version v4.2.2
+git version: a0bbbff6ada159e19298d37946ac8dc4b497eadf
+allocator: system
+modules: none
+build environment:
+    distarch: x86_64
+    target_arch: x86_64
+```
 
 **# Brew 下载**
 
