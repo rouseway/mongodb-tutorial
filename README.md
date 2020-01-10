@@ -65,7 +65,7 @@ build environment:
 ```shell
 $ sudo mkdir -p /data/db
 $ sudo chown -R 当前登录的用户名  /data
-$ mongod --dbpath=/data/db
+$ mongod --dbpath /data/db
 ```
 
 运行
