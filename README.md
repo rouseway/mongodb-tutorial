@@ -100,8 +100,11 @@ bind_ip=127.0.0.1
 ### 1.4. 运行
 
 ```shell
+# 通过配置文件启动mongodb
 $ mongod -f /etc/mongodb.conf
 ```
+
+如果出现successful就表示服务已经启动成功
 
 浏览器输入：
 
@@ -116,6 +119,16 @@ It looks like you are trying to access MongoDB over HTTP on the native driver po
 ```
 
 > 提示：后续使用mongodb只需要打开终端输入mongo指令即可。
+
+### 1.5. 修改配置文件后重新启动
+
+\1. 打开mac 启动台 -> 其他 -> 活动监视器，删除 mongodb 服务
+
+\2. 删除 mongod.lock 文件
+
+\3. 终端执行 mongod --repair
+
+\4. 根据配置文件启动：mongod -f /etc/mongodb.conf
 
 ## 2. Windows
 
