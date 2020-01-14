@@ -93,6 +93,8 @@ port=27017
 fork=true
 # 绑定ip
 bind_ip=127.0.0.1
+# 授权
+auth=true
 ```
 
 按 `ESC` 输入 `:wq!` 保存退出！
