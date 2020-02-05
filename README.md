@@ -14,7 +14,7 @@ MongoDB 是一个文档数据库，提供好的性能，领先的非关系型数
 
 ![](./images/download.png)
 
-\2. 将压缩包解压至你想放的任意位置，我这里放在 “/usr/local/” 目录下，并重新命名为 “mongodb”。
+\2. 将压缩包解压至任意位置，我放在 “/usr/local/” 目录下，并重新命名为 “mongodb”
 
 \3. 添加环境变量
 
@@ -61,11 +61,12 @@ build environment:
 ### 1.2. 创建目录
 
 ```shell
-$ sudo mkdir -p /data/db
-$ sudo mkdir -p /data/logs
-$ cd /data/logs
-$ touch mongodb.log
-$ sudo chown -R 当前登录的用户名  /data
+# 进入安装目录
+$ cd /usr/local/mongodb/
+# 创建日志输出、数据库目录
+$ mkdir -p data/logs data/db
+# 进入日志输出目录并创建日志文件
+$ cd /data/logs && touch mongodb.log
 ```
 
 ### 1.3. 配置文件
@@ -78,9 +79,9 @@ $ vim /etc/mongodb.conf
 
 ```ini
 # 数据库存放地址
-dbpath=/data/db
+dbpath=/usr/local/mongodb/data/db
 # 日志输出文件路径
-logpath=/data/logs/mongodb.log
+logpath=/usr/local/mongodb/data/logs/mongodb.log
 # 错误日志采用追加模式，配置这个选项后mongodb的日志会追加到现有的日志文件，而不是从新创建一个新文件
 logappend=true
 # 启用日志文件，默认启用
@@ -93,7 +94,7 @@ port=27017
 fork=true
 # 绑定ip
 bind_ip=127.0.0.1
-# 授权
+# 开启认证
 auth=true
 ```
 
@@ -122,13 +123,13 @@ It looks like you are trying to access MongoDB over HTTP on the native driver po
 
 > 提示：后续使用mongodb只需要打开终端输入mongo指令即可。
 
-### 1.5. 修改配置文件后重新启动
+### 1.5. 重启服务
 
 \1. 打开mac 启动台 -> 其他 -> 活动监视器，删除 mongodb 服务
 
-\2. 删除 mongod.lock 文件
+\2. 在data/db/目录下删除 mongod.lock 文件
 
-\3. 终端执行 mongod --repair
+\3. 终端执行：mongod --repair
 
 \4. 根据配置文件启动：mongod -f /etc/mongodb.conf
 
