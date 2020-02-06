@@ -1,0 +1,10 @@
+{"name":"阿珂", "position": "刺客", "location": "野区", "speciality":"突进/收割","proficient": 75, "skills":["弧光", "瞬华", "幻舞"]}
+{"name":"关羽", "position": "战士", "location": "上路", "speciality":"突进/先手","proficient": 980, "skills":["单刀赴会", "青龙偃月", "刀锋铁骑"]}
+{"name":"蒙犽", "position": "射手", "location": "下路", "speciality":"远程消耗","proficient": 98, "skills":["狂轰火线", "爆裂重炮", "飞弹援袭"]}
+{"name":"狄仁杰", "position": "射手", "location": "下路", "speciality":"远程消耗","proficient": 1397, "skills":["六令追凶", "逃脱", "王朝密令"]}
+{"name":"上官婉儿", "position": "法师/刺客", "location": "中路", "speciality":"突进/收割","proficient": 5822, "skills":["篆法·疾势", "飞白·藏锋", "章草·横鳞"]}
+{"name":"鬼谷子", "position": "辅助", "location": "下路", "speciality":"团控","proficient": 111, "skills":["先知·神隐", "万物有灵", "先知·雾隐"]}
+{"name":"周瑜", "position": "法师", "location": "中路", "speciality":"远程消耗","proficient": 3498, "skills":["东风浩荡", "流火之矢", "烽火赤壁"]}
+{"name":"张飞", "position": "坦克/辅助", "location": "下路", "speciality":"突进/团控","proficient": 587, "skills":["画地为牢", "守护机关", "狂兽血性"]}
+{"name":"嬴政", "position": "法师", "location": "中路", "speciality":"远程消耗","proficient": 1055, "skills":["王者惩戒", "王者守御", "至尊王权"]}
+{"name":"李白", "position": "刺客", "location": "野区", "speciality":"突进/收割","proficient": 317, "skills":["将进酒", "神来之笔", "青莲剑歌"]}
