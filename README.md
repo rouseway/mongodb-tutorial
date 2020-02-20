@@ -1,6 +1,14 @@
 # 一、概述
 
-MongoDB 是一个文档数据库，提供好的性能，领先的非关系型数据库。采用BSON存储文档数据。BSON是一种类json的一种二进制形式的存储格式，简称：Binary JSON。相对于json多了date类型和二进制数组。
+数据库分SQL（关系型数据库）和NoSQL（非关系型数据库）。
+
+MongoDB 是由C++语言编写的，是一个基于分布式文件存储的开源数据库系统 => NoSQL。
+
+MongoDB 将数据存储为一个文档，数据结构由键值(key=>value)对组成。MongoDB 文档类似于 JSON 对象。字段值可以包含其他文档，数组及文档数组。
+
+![](./images/form.png)
+
+
 
 # 二、下载
 
@@ -135,7 +143,9 @@ It looks like you are trying to access MongoDB over HTTP on the native driver po
 
 ## 2. Windows
 
-# 三、概念
+[参考示例 >>](https://www.runoob.com/mongodb/mongodb-window-install.html)
+
+# 三、概念解析
 
 | SQL术语/概念 | MongoDB术语/概念 | 解释/说明                           |
 | :----------- | :--------------- | :---------------------------------- |
