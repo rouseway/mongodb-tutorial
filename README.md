@@ -219,6 +219,8 @@ $ mongo.exe
 | `table joins` |                  | 表连接，MongoDB不支持                  |
 | `Primary key` | `Primary key`    | 主键，MongoDB自动将`_id`字段设置为主键 |
 
+> [参照 SQL 到 MongoDB 的映射图标 >>](https://docs.mongoing.com/mongodb-crud-operations/sql-to-mongodb-mapping-chart)
+
 # 四、核心API
 
 ## 1. 用户管理
@@ -342,54 +344,130 @@ db.createCollection('usrs', {capped: true, size:6142800, max: 10000})
 
 ### 4.1. 插入文档
 
-插入文档，类似于mysql插入一行数据。
+插入文档，类似于mysql 插入一行数据。
 
 ```markdown
-# 1. 插入文档
-db.COLLECTION_NAME.insert(document)
-# 2. 插入文档(如果指定\_id,则更新，否则插入)
-db.COLLECTION_NAME.save(document)
-# 3. 同时插入多条数据
+# 1. 插入一个文档
+db.COLLECTION_NAME.insertOne(document)
+# 2. 插入多个数据
 db.COLLECTION_NAME.insertMany(document[])
 ```
 
 **① 复用性插入**
 
-为了让数据可以更好的复用，我们可以先把要插入的数据，定义为一个变量，然后在进行插入。
+为了让数据可以更好的复用，我们可以先把要插入的数据，定义为一个变量，然后再进行插入。
 
 ```shell
 document=({name:"赵六"})
-db.names.insert(document)
+db.COLLECTION_NAME.insertOne(document)
 ```
 
-### 4.2. 更新文档
+### 4.2. 查询文档
 
-语法解读：
+**1）查询文档**
+
+语法形式：
 
 ```js
-db.collection_name.update(
-   <query>,
-   <updateObj>,
-   {
-     upsert: <boolean>,
-     multi: <boolean>
-   }
-)
+db.COLLECTION_NAME.find(query, projection)
+```
+
+参数解读：
+
+- `query`：使用查询操作符指定选择过滤器 
+- `projection`：指定返回字段，省略返回所有
+
+示例：
+
+```markdown
+# 1. 查询所有
+db.COLLECTION_NAME.find({})
+# 2. 等值查询 - 查询 name = ‘tom’ 的数据
+db.COLLECTION_NAME.find({name: 'Tom'})
+# 2. 查询文档中的 name、age 字段，排除 _id 字段。
+db.COLLECTION_NAME.find({}, {_id: false, name: true, age: true});
+```
+
+**2）查询操作符**
+
+- `$in`：查询值 **为** 指定集合中某个元素时
+- `$nin`：查询值 **不为** 指定集合中某个元素时
+- `$not`：不等于某个值
+- `$gt`：大于某个值
+- `$gte`：大于等于某个值
+- `$lt`：小于某个值
+- `$lte`：小于等于某个值
+- `$ne`：不等于某个值
+
+代码示例：
+
+```markdown
+# 1. 查询age为20或30岁的数据
+db.COLLECTION_NAME.find({age: {$in: [20, 30]}});
+# 2. 查询age不为20或30岁的数据
+db.COLLECTION_NAME.find({age: {$nin: [20, 30]}});
+# 3. 查询age大于18岁的数据
+db.COLLECTION_NAME.find({age: {$gt: 18}});
+# 4. 查询age小于18岁的数据
+db.COLLECTION_NAME.find({age: {$lt: 18}});
+# 5. 查询name不等于‘Tom’的数据
+db.COLLECTION_NAME.find({name: {$ne: "Tom"}})
+```
+
+**3）正则表达式**
+
+语法形式：
+
+```js
+db.collectoin_name.find({key: /val/})
+```
+
+**4）联合查询**
+
+```markdown
+# 1. and 查询，即指定多个键值
+db.COLLECTION_NAME.find({ field1: value1, field2: value2 })
+# 2. or 查询
+db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
+```
+
+**5）分页查询**
+
+```markdown
+# 1. 查询指定数量的数据
+db.COLLECTION_NAME.find().limit(number)
+# 2. 跳过指定数量的数据
+db.COLLECTION_NAME.find().skip(number)
+# 3. 排序：1为升序，-1为降序
+db.COLLECTION_NAME.find().sort({field:1/-1})
+# 4. 分页查询
+> let pageIndex = 3;
+> let pageSize = 3;
+> db.grade1.find().skip((pageIndex - 1) * pageSize).limit(pageSize).sort({username: 1});
+```
+
+### 4.3. 更新文档
+
+语法解读：
+
+```markdown
+# 1. 更新一个文档
+db.COLLECTION_NAME.updateOne(filter, update, options)
+# 2. 更新多个文档
+db.COLLECTION_NAME.updateMany(filter, update, options)
 ```
 
 语法解读：
 
-- `query` ：查询条件
+- `filter` ：查询条件
+- `update`：更新后的对象或指定一些更新的操作符
+- `options`：可选项
+  - `upsert`：可选，未查询到时是否插入updateObj，默认false。
+  - `multi`：可选，是否更新所有查询到的文档，默认false。
 
-- `updateObj`：更新后的对象或指定一些更新的操作符
+**操作符**
 
-- `upsert`：可选，未查询到时是否插入updateObj，默认false。
-
-- `multi`：可选，是否更新所有查询到的文档，默认false。
-
-**# 操作符**
-
-**\1. $inc**
+**1）$inc**
 
 ```js
 { $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
@@ -403,7 +481,7 @@ db.collection_name.update(
 
 给 {name:"木子李"} 文档的age累加10。
 
-**\2. $push**
+**2）$push**
 
 ```js
 { $push: { <field1>: <value1>, ... } }
@@ -436,121 +514,36 @@ db.stus.update({name: "木子李"}, {$push: {hobby: "吉他"}})
 db.users.update({username: "lihy"}, {$set: {password: "12345"}})
 ```
 
-### 4.3. 删除文档
+### 4.4. 删除文档
 
-语法形式：
+```markdown
+# 1. 删除单个文档
+db.COLLECTION_NAME.deleteOne()
+# 2. 删除多个文档
+db.COLLECTION_NAME.deleteMany()
+```
 
-```js
-db.collection_nam.remove(
-   <query>,
-   {
-     justOne: <boolean>
-   }
-)
+## 5. 排序
+
+```
+db.COLLECTION_NAME.find().sort({KEY:1})
 ```
 
 参数解读：
 
-- query :（可选）查询条件。
-- justOne : （可选）是否只删除匹配结果中的第1个
+- `key`：排序字段，`1` 为升序，`-1` 为降序
 
-示例代码：
+## 6. 索引
 
-```js
-db.stus.remove({name: "木子李"});
-```
+### 6.1. 概述
 
-### 4.4. 查询文档
-
-**1）查询文档**
-
-语法形式：
-
-```js
-db.collection_name.find(query, projection)；
-```
-
-参数解读：
-
-- query：使用查询操作符指定选择过滤器 
-- projection：定配到到的文档中的返回的字段。
-
-```js
-db.stus.find({}, {_id: false, name: true, age: true});
-```
-
-查询文档中的 `name`、`age ` 字段，排除 `_id` 字段。
-
-**2）查询操作符**
-
-- `$in`：数组中包含
-- `$nin`：数组中不包含
-- `$not`：排除
-- `$gt`：大于
-- `$gte`：大于等于
-- `$lt`：小于
-- `$lte`：小于等于
-- `$ne`：不等于
-
-代码示例：
-
-```markdown
-# 1. 查询年龄为20、30岁的数据
-db.stus.find({age: {$in: [20, 30]}});
-# 2. 查询年龄不为20、30岁的数据
-db.stus.find({age: {$nin: [20, 30]}});
-# 3. 查询年龄大于18岁的数据
-db.stus.find({age: {$gt: 18}});
-# 4. 查询年龄小于18岁的数据
-db.stus.find({age: {$lt: 18}});
-# 5. 查询姓名不等于‘木子李’的数据
-db.stus.find({name: {$ne: "木子李"}})
-# 6. 正则表达式查询
-```
-
-**3）正则表达式**
-
-语法形式：
-
-```js
-db.collectoin_name.find({key: /val/})
-```
-
-**4）联合查询**
-
-```markdown
-# 1. and 查询
-db.collection_name.find({ field1: value1, field2: value2 })
-# 2. or 查询
-db.collection_name.find({ $or: [{key1: value1}, {key2:value2} ] })
-```
-
-**5）分页查询**
-
-```markdown
-# 1. 查询指定数量的数据
-db.collectoin_name.find().limit(number)
-# 2. 跳过指定数量的数据
-db.collectoin_name.find().skip(number)
-# 3. 排序：1为升序，-1为降序
-db.collectoin_name.find().sort({field:1/-1})
-# 4. 分页查询
-> let pageIndex = 3;
-> let pageSize = 3;
-> db.grade1.find().skip((pageIndex - 1) * pageSize).limit(pageSize).sort({username: 1});
-```
-
-## 5. 索引
-
-### 5.1. 概述
-
-索引通常能够极大的提高查询的效率，如果没有索引，MongoDB在读取数据时必须扫描集合中的每个文件并选取那些符合查询条件的记录。
+索引通常能够极大的提高查询的效率，如果没有索引，MongoDB 在读取数据时必须扫描集合中的每个文件并选取那些符合查询条件的记录。
 
 这种扫描全集合的查询效率是非常低的，特别在处理大量的数据时，查询可以要花费几十秒甚至几分钟，这对网站的性能是非常致命的。
 
 索引是特殊的数据结构，索引存储在一个易于遍历读取的数据集合中，索引是对数据库表中一列或多列的值进行排序的一种结构
 
-### 5.2. API
+### 6.2. API
 
 ```markdown
 # 1. 创建索引/v3.0之前
@@ -588,7 +581,7 @@ options 参数类型：
 
 利用 TTL 集合对存储的数据进行失效时间设置：经过指定的时间段后或在指定的时间点过期，MongoDB 独立线程去清除数据。类似于设置定时自动删除任务，可以清除历史记录或日志等前提条件，设置 Index 的关键字段为日期类型 new Date()。
 
-### 5.3. 索引类型
+### 6.3. 索引类型
 
 **1）_id 索引**
 
@@ -646,9 +639,9 @@ MongoDB会自动对speciality字段的数据进行分词，然后我们就可以
 > db.heros.find({$text:{$search:"突进"}})
 ```
 
-## 6. Import And Export
+# 五、Import And Export
 
-### 6.1. 导入
+## 1. 导入
 
 语法形式：
 
@@ -672,7 +665,7 @@ $ mongoimport -h 主机名 -d 数据库名 -c 集合名 导入文件的地址
 $ mongoimport -h root:123@localhost:27017  -d db_test -c heros  /Users/lihongyao/Desktop/heros.json 
 ```
 
-### 6.2. 导出
+## 2. 导出
 
 语法形式：
 
@@ -688,7 +681,11 @@ $ mongoexport -h 主机名 -d 数据库名 -c 集合名 -o 导出文件路径
 $ mongoexport -h root:123@localhost:27017 -d db_test -c stus -o /Users/lihongyao/Desktop/stus.json 
 ```
 
-# 五、可视化工具
+# 六、内置运算符
+
+[参考指南 >>](https://docs.mongoing.com/can-kao/yun-suan-fu)
+
+# 七、可视化工具
 
 1. [前往下载 MongoDB Compass >>](https://www.mongodb.com/try/download/compass)
 
