@@ -1,5 +1,7 @@
 # 一、概述
 
+[mongoosejs-docs >>](https://mongoosejs.com/docs/guide.html)
+
 [mongoDB 官方文档中文版 >>](https://docs.mongoing.com/)
 
 MongoDB是一个由C++ 语言编写的 **基于分布式文件存储的数据库**
@@ -148,13 +150,13 @@ It looks like you are trying to access MongoDB over HTTP on the native driver po
 
 ### 1.5. 重启服务
 
-1）打开mac 启动台 -> 其他 -> 活动监视器，删除 mongodb 服务
+1）打开mac 启动台 → 其他 → 活动监视器 → 删除 mongodb 服务
 
-2）在data/db/目录下删除 mongod.lock 文件
+2）在 *`data/db/`* 目录下删除 mongod.lock 文件
 
-3）终端执行：mongod --repair
+3）终端执行：`mongod --repair`
 
-4）根据配置文件启动：mongod -f /etc/mongodb.conf
+4）根据配置文件启动：`mongod -f /etc/mongodb.conf`
 
 ## 2. Windows
 
@@ -245,7 +247,7 @@ db.auth(user, pwd)
 > use admin
 > db.createUser({user:'root', pwd:'123', roles:[{role:'root', db: 'admin'}]})
 # 创建普通用户
-> db.createUser({user:'lihy', pwd:'123', roles:[{role:'root', db: 'db_test'}]})
+> db.createUser({user:'lee', pwd:'123', roles:[{role:'root', db: 'DB-TEST'}]})
 ```
 
 > 提示：创建普通用户时需先登陆超级用户再创建。
@@ -257,19 +259,19 @@ db.auth(user, pwd)
 - 集群管理员角色：`clusterAdmin`、`clusterManager`、`clusterMonitor`、`hostManager`
 - 备份和恢复角色：`backup`、`restore`
 - 所有数据库角色：`readAnyDatabase`、`readWriteAnyDatabase`、`userAdminAnyDatabase`、`dbAdminAnyDatabase`
-- 超级用户角色：root
+- 超级用户角色：`root`
 
 3）角色功能
 
-- `Read`：允许用户读取指定数据库
+- `read`：允许用户读取指定数据库
 - `readWrite`：允许用户读写指定数据库
-- `dbAdmin`：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问`system.profile`
-- `userAdmin`：允许用户向`system.users`集合写入，可以找指定数据库里创建、删除和管理用户
-- `clusterAdmin`：只在`admin`数据库中可用，赋予用户所有分片和复制集相关函数的管理权限。
 - `readAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读权限
 - `readWriteAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读写权限
-- `userAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`userAdmin`权限
+- `dbAdmin`：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问`system.profile`
 - `dbAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`dbAdmin`权限。
+- `userAdmin`：允许用户向`system.users`集合写入，可以找指定数据库里创建、删除和管理用户
+- `userAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`userAdmin`权限
+- `clusterAdmin`：只在`admin`数据库中可用，赋予用户所有分片和复制集相关函数的管理权限。
 - `root`：只在`admin`数据库中可用。超级账号，超级权限
 
 ## 2. 数据库操作
@@ -695,15 +697,35 @@ $ mongoexport -h root:123@localhost:27017 -d db_test -c stus -o /Users/lihongyao
 
 **①. 打开界面，点击 Fill in connection fields individually**
 
-![](D:/远程仓库/mongoDB/images/compass_1.png)
+![](./images/compass_1.png)
 
 **② 填写连接项**
 
-![](D:/远程仓库/mongoDB/images/compass_2.png)
+![](./images/compass_2.png)
 
 **③ 连接成功之后就可以进行基本操作了，你可以使用图形界面进行：数据库、集合和文档的管理。**
 
-![](D:/远程仓库/mongoDB/images/compass_3.png)
+![](./images/compass_3.png)
+
+# 八、扩展
+
+## 1. 忘记密码
+
+### macOS
+
+```shell
+sudo vim /etc/mongodb.conf     # 修改 mongodb 配置，将 auth = true 注释掉，或者改成 false
+...											       # 参照上述示例，重启mongo服务
+mongo                          # 运行客户端（也可以去mongodb安装目录下运行这个）
+use admin                      # 切换到系统帐户表
+db.getUsers()                  # 查看当前帐户（密码有加密过）
+db.system.users.remove({})     # 删除所有帐户
+db.addUser('admin','password') # 添加新帐户
+
+sudo vim /etc/mongodb.conf     # 恢复 auth = true
+service mongodb restart        # 重启 mongodb 服务
+...											       # 参照上述示例，重启mongo服务
+```
 
 
 
