@@ -184,32 +184,55 @@ MongoDB Compass 是一个图形界面管理工具，我们可以在后面自己�
 
 **④ 安装完成**
 
-- 安装完成后在mongodb的bin目录的同级下创建 **data/db** ，如：*`E:\软件\MongoDB\data\db`*（db目录需自行创建）
+- 安装目录下创建db目录：*`E:\MongoDB\data\db`*
 - 然后将bin目录配置进入**环境变量**，配置步骤：右建此电脑 → 属性 → 高级系统设置 → 环境变量
 
-**⑤ 最后启动**
+### 2.2. 配置文件
 
-1）以管理员身份打开cmd，执行命令： **mongod --dbpath db的路径**（路径如果有空格记得加上引号）
+创建配置文件：*`E:\MongoDB\conf\mongod.conf`*
 
-2）最后执行mongo连接数据库，开启交互模式。
+文件内容同 macOS 环境，注意 db 和 logs 文件目录，如下所示：
 
-[参考示例 >>](https://www.runoob.com/mongodb/mongodb-window-install.html)
-
-### 2.2. 基本使用
-
-**①. 启动mongoDB 服务**
-
-```shell
- $ mongod.exe --dbpath  E:\软件\MongoDB\data\db
+```ini
+# 数据库存放地址
+dbpath=E:\MongoDB\data\db
+# 日志输出文件路径
+logpath=E:\MongoDB\log\mongod.log
+# 错误日志采用追加模式，配置这个选项后mongodb的日志会追加到现有的日志文件，而不是从新创建一个新文件
+logappend=true
+# 启用日志文件，默认启用
+journal=true
+# 这个选项可以过滤掉一些无用的日志信息，若需要调试使用请设置为false
+quiet=true
+# 端口号
+port=27017
+# 守护进程
+fork=true
+# 绑定ip
+bind_ip=127.0.0.1
+# 开启认证
+auth=true
 ```
 
-**②. 链接服务**
+### 2.3. 启动服务
 
 ```shell
-$ mongo.exe
+# 命令行参数启动
+$ mongod.exe --dbpath E:\MongoDB\data\db --serviceName "MongoDB"
+# 配置文件方式启动
+$ mongod.exe --config E:\MongoDB\conf\mongod.cfg --serviceName "MongoDB"
 ```
 
-# 三、概念解析
+```shell
+# 查看服务
+services.msc
+# 启用服务
+net start mongodb
+# 停止服务
+net stop mongodb
+```
+
+# 三、概念
 
 | SQL术语/概念  | MongoDB术语/概念 | 解释/说明                              |
 | :------------ | :--------------- | :------------------------------------- |
@@ -223,7 +246,7 @@ $ mongo.exe
 
 > [参照 SQL 到 MongoDB 的映射图标 >>](https://docs.mongoing.com/mongodb-crud-operations/sql-to-mongodb-mapping-chart)
 
-# 四、核心API
+# 四、APIs
 
 ## 1. 用户管理
 
@@ -247,7 +270,7 @@ db.auth(user, pwd)
 > use admin
 > db.createUser({user:'root', pwd:'123', roles:[{role:'root', db: 'admin'}]})
 # 创建普通用户
-> db.createUser({user:'lee', pwd:'123', roles:[{role:'root', db: 'DB-TEST'}]})
+> db.createUser({user:'lee', pwd:'123', roles:[{role:'readWrite', db: 'DB-TEST'}]})
 ```
 
 > 提示：创建普通用户时需先登陆超级用户再创建。
@@ -641,7 +664,7 @@ MongoDB会自动对speciality字段的数据进行分词，然后我们就可以
 > db.heros.find({$text:{$search:"突进"}})
 ```
 
-# 五、Import And Export
+# 五、Exports
 
 ## 1. 导入
 
@@ -715,7 +738,7 @@ $ mongoexport -h root:123@localhost:27017 -d db_test -c stus -o /Users/lihongyao
 
 ```shell
 sudo vim /etc/mongodb.conf     # 修改 mongodb 配置，将 auth = true 注释掉，或者改成 false
-...											       # 参照上述示例，重启mongo服务
+...							   # 参照上述示例，重启mongo服务
 mongo                          # 运行客户端（也可以去mongodb安装目录下运行这个）
 use admin                      # 切换到系统帐户表
 db.getUsers()                  # 查看当前帐户（密码有加密过）
@@ -724,7 +747,7 @@ db.addUser('admin','password') # 添加新帐户
 
 sudo vim /etc/mongodb.conf     # 恢复 auth = true
 service mongodb restart        # 重启 mongodb 服务
-...											       # 参照上述示例，重启mongo服务
+...							   # 参照上述示例，重启mongo服务
 ```
 
 
