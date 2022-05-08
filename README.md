@@ -41,7 +41,7 @@ MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）�
 
 ## 1. macOS
 
-**① 将压缩包解压至任意位置，我放在 “/usr/local/” 目录下，并重新命名为 “mongodb”**
+**① 将压缩包解压至任意位置，我放在 *`/usr/local/`* 目录下，并重新命名为 *`mongodb`***
 
 **② 添加环境变量**
 
@@ -57,13 +57,17 @@ export PATH=$PATH:/usr/local/mongodb/bin
 
 ```shell
 $ mongo --version
-MongoDB shell version v4.2.2
-git version: a0bbbff6ada159e19298d37946ac8dc4b497eadf
-allocator: system
-modules: none
-build environment:
-    distarch: x86_64
-    target_arch: x86_64
+MongoDB shell version v5.0.3
+Build Info: {
+    "version": "5.0.3",
+    "gitVersion": "657fea5a61a74d7a79df7aff8e4bcf0bc742b748",
+    "modules": [],
+    "allocator": "system",
+    "environment": {
+        "distarch": "x86_64",
+        "target_arch": "x86_64"
+    }
+}
 ```
 
 **# Brew 下载**
