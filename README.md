@@ -210,12 +210,10 @@ journal=true
 quiet=true
 # 端口号
 port=27017
-# 守护进程
-fork=true
 # 绑定ip
-bind_ip=127.0.0.1
+bind_ip=0.0.0.0
 # 开启认证
-auth=true
+auth=false
 ```
 
 ### 2.3. 启动服务
@@ -224,7 +222,7 @@ auth=true
 # 命令行参数启动
 $ mongod.exe --dbpath E:\MongoDB\data\db --serviceName "MongoDB"
 # 配置文件方式启动
-$ mongod.exe --config E:\MongoDB\conf\mongod.cfg --serviceName "MongoDB"
+$ mongod.exe --config "E:\MongoDB\conf\mongod.cfg" --install --serviceName "MongoDB"
 ```
 
 ```shell
@@ -235,6 +233,8 @@ net start mongodb
 # 停止服务
 net stop mongodb
 ```
+
+> **Tips：** 使用管理员模式运行终端，切记切记！
 
 # 三、概念
 
