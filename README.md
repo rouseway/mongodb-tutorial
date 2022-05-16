@@ -498,6 +498,13 @@ db.users.aggregate([
 }
 ```
 
+参数解读：
+
+- `from`：同一个数据库下等待被Join的集合
+- `localField`：源集合中的match值
+- `foreignField`：待Join集合中的match值
+- `as`：输出字段
+
 ##### 附录：查询操作符
 
 | 操作符   | 描述                           | 示例                                                |
@@ -526,14 +533,14 @@ db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
 
 ```markdown
 # 1. 更新一个文档
-db.COLLECTION_NAME.updateOne(filter, update, options)
+db.COLLECTION_NAME.updateOne(query, update, options)
 # 2. 更新多个文档
-db.COLLECTION_NAME.updateMany(filter, update, options)
+db.COLLECTION_NAME.updateMany(query, update, options)
 ```
 
 语法解读：
 
-- `filter` ：查询条件
+- `query` ：查询条件
 - `update`：更新后的对象或指定一些更新的操作符
 - `options`：可选项
   - `upsert`：可选，未查询到时是否插入updateObj，默认false。
@@ -541,60 +548,63 @@ db.COLLECTION_NAME.updateMany(filter, update, options)
 
 **操作符**
 
-**1）$inc**
+##### $inc
+
+在原基础上累加
 
 ```js
 { $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
 ```
 
-> 解读：在原基础上累加（increment）
-
-```js
-> db.stus.update({name:"木子李"}, {$inc:{age: 10}})
+```mysql
+db.users.updateOne({name:'张三'}, {$inc: { age: 10 }})
 ```
 
-给 {name:"木子李"} 文档的age累加10。
+代码描述：查询 name 为张三的记录，并将其 age 字段累加10
 
-**2）$push**
+##### $push
+
+向数组中添加元素，不会覆盖已有的
 
 ```js
 { $push: { <field1>: <value1>, ... } }
 ```
 
-> 解读：向数组中添加元素，不会覆盖已有的
-
-```js
-db.stus.update({name: "木子李"}, {$push: {hobby: "吉他"}})
+```mysql
+db.users.updateOne({name:'张三'}, {$push: { interest : "爬山" }})
 ```
 
-**\3. $addToSet**
+代码描述：查询 name 为张三的记录，并在 interest 中追加 爬山 
+
+##### $addToSet
+
+给数组添加或者设置一个值
 
 ```js
 { $addToSet: { <field1>: <value1>, ... } }
 ```
 
-> 解读：给数组添加或者设置一个值，
+##### $set
 
-**\4. $set**
+更新字段
 
 ```js
 { $set: { <field1>: <value1>, ... } }
 ```
 
-> 解读：更新字段
-
-```js
-// 修改密码
-db.users.update({username: "lihy"}, {$set: {password: "12345"}})
+```mysql
+db.users.updateOne({name:'张三'}, {$set: { sex : "女" }})
 ```
+
+代码解读：查询 name 为张三的记录，并将其 sex 字段更新为 女。
 
 ### 4.4. 删除文档
 
 ```markdown
 # 1. 删除单个文档
-db.COLLECTION_NAME.deleteOne()
+db.COLLECTION_NAME.deleteOne(query)
 # 2. 删除多个文档
-db.COLLECTION_NAME.deleteMany()
+db.COLLECTION_NAME.deleteMany(query)
 ```
 
 ## 6. 索引
