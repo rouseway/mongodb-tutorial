@@ -374,7 +374,7 @@ db.createCollection('usrs', {capped: true, size:6142800, max: 10000})
 > - 在插入文档时，MongoDB 首先检查固定集合的 size 字段，然后检查 max 字段，然后autoIndexId属性已经被遗弃了，未来将会被删除。
 > - 在 MongoDB 中，其实当你插入一些文档时，MongoDB 也会自动创建集合。
 
-## 4. 文档操作（行）
+## 4. 文档操作（行）*
 
 ### 4.1. 插入文档
 
@@ -398,28 +398,30 @@ db.COLLECTION_NAME.insertOne(document)
 
 ### 4.2. 查询文档
 
-查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：<u>聚合查询（*`aggregate`*）</u> 
+查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：聚合管道查询 → [aggregation >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
+
+其思想是将文档（`Document`）在一个管道处理完毕后将结果传递给下一个管道处理
 
 聚合主要用于处理数据（诸如统计平均值，求和等），并返回计算后的数据结果。聚合管道主要包含如下API：
 
-| 命令         | 功能描述                                      |
-| ------------ | --------------------------------------------- |
-| *`$match`*   | 选择要处理的文档，与 `find()` 类似            |
-| *`$project`* | 指定输出文档里的字段                          |
-| *`$skip`*    | 跳过一定数量的文档                            |
-| *`$limit`*   | 文档数量                                      |
-| *`$unwind`*  |                                               |
-| *`$group`*   |                                               |
-| *`$lookup`*  |                                               |
-| *`$sort`*    | 排序，*`1`：升序，`-1`：降序，默认为升序显示* |
+| 命令         | 功能描述                                                     |
+| ------------ | ------------------------------------------------------------ |
+| *`$match`*   | 用于过滤数据，只输出符合条件的文档，与 `find()` 类似，基于MongoDB的标准查询操作 |
+| *`$project`* | 修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档 |
+| *`$skip`*    | 在聚合管道中跳过指定数量的文档                               |
+| *`$limit`*   | 用来限制MongoDB聚合管道返回的文档数                          |
+| *`$unwind`*  | 将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值 |
+| *`$group`*   | 将集合中的文档分组，可用于统计结果                           |
+| *`$lookup`*  | 引入其他集合的数据（表关联查询）                             |
+| *`$sort`*    | 将输入文档排序后输出 *`1`：升序，`-1`：降序，默认为升序显示* |
 
-
+> **Tips：**同样的操作符以及条件, 不同的排列顺序对查询结果会有影响
 
 插入测试数据：
 
 ```mysql
 db.users.insertMany([
-  {"name":"张三", "sex": "男", "age": 31, "phone": "15666666666", "job":"前端工程师", "interest": ["烹饪", "唱歌", "运动"]},
+  {"name":"张三", "sex": "男", "age": 31, "phone": "15666666666", "job":"前端工程师", "interest": ["烹饪", "运动"]},
   {"name":"李四", "sex": "女", "age": 16, "phone": "15777777777", "job":"后端工程师", "interest": ["追剧", "旅行"]},
   {"name":"赵二", "sex": "男", "age": 28, "phone": "15888888888", "job":"测试工程师", "interest": ["游戏", "摄影"]},
   {"name":"王五", "sex": "女", "age": 38, "phone": "15999999999", "job":"运维工程师", "interest": ["运动", "旅行"]}
@@ -460,27 +462,54 @@ db.users.aggregate([
 }
 ```
 
-##### $skip、$limit、$sort
+##### \$skip、\$limit、$sort
+
+列表分页一般会联合这三个操作符使用，其中
+
+- *`$skip`*：指定跳过多少条记录
+- *`$limit`*：每次查询条数
+
+- *`$sort`*：排序 
+
+> **Tips：**skip 的计算方式：(当前页码-1)*每页大小 如：`(pageIndex - 1) * pageSize`
 
 ```mysql
 db.users.aggregate([
     { $match: {} },
-    { $skip: 1 },   # 跳过第1条记录
-    { $limit: 3 },  # 返回3条记录
-    { $sort: { age: -1 } },# 根据 age 降序
+    { $skip: 1 },   
+    { $limit: 3 },  
+    { $sort: { age: -1 } }
 ])
 ```
 
-**2）查询操作符**
+##### $lookup
 
-- `$in`：查询值 **为** 指定集合中某个元素时
-- `$nin`：查询值 **不为** 指定集合中某个元素时
-- `$not`：不等于某个值
-- `$gt`：大于某个值
-- `$gte`：大于等于某个值
-- `$lt`：小于某个值
-- `$lte`：小于等于某个值
-- `$ne`：不等于某个值
+[$lookup](https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/) 表关联查询，语法结构如下：
+
+```
+{
+   $lookup:
+     {
+       from: <collection to join>,
+       localField: <field from the input documents>,
+       foreignField: <field from the documents of the "from" collection>,
+       as: <output array field>
+     }
+}
+```
+
+##### 附录：查询操作符
+
+| 操作符   | 描述                           | 示例                                                |
+| -------- | ------------------------------ | --------------------------------------------------- |
+| *`$in`*  | 查询值为指定集合中某个元素时   | *`{ $match: { name: { $in: ['张三', '李四'] } } }`* |
+| *`$nin`* | 查询值不为指定集合中某个元素时 |                                                     |
+| *`$gt`*  | 大于某个值                     |                                                     |
+| *`$gte`* | 大于等于某个值                 |                                                     |
+| *`$lt`*  | 小于某个值                     |                                                     |
+| *`$lte`* | 小于等于某个值                 |                                                     |
+| *`$ne`*  | 不等于某个值                   |                                                     |
+| `$or`    | OR 查询                        |                                                     |
 
 **4）联合查询**
 
@@ -567,16 +596,6 @@ db.COLLECTION_NAME.deleteOne()
 # 2. 删除多个文档
 db.COLLECTION_NAME.deleteMany()
 ```
-
-## 5. 排序
-
-```
-db.COLLECTION_NAME.find().sort({KEY:1})
-```
-
-参数解读：
-
-- `key`：排序字段，`1` 为升序，`-1` 为降序
 
 ## 6. 索引
 
