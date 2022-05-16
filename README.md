@@ -1,8 +1,10 @@
 # 一、概述
 
+[mongodb-docs >>](https://www.mongodb.com/docs/)
+
 [mongoosejs-docs >>](https://mongoosejs.com/docs/guide.html)
 
-[mongoDB 官方文档中文版 >>](https://docs.mongoing.com/)
+[mongoDB 官方文档中文版 >>](http://mongoosejs.net/docs/)
 
 MongoDB是一个由C++ 语言编写的 **基于分布式文件存储的数据库**
 
@@ -31,7 +33,23 @@ MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）�
 - 数据的高可扩展性
 - 数据的高可用性
 
-# 二、下载安装
+## 4. 概念
+
+| SQL术语/概念  | MongoDB术语/概念 | 解释/说明                              |
+| :------------ | :--------------- | :------------------------------------- |
+| `database`    | `database`       | 数据库                                 |
+| `table`       | `collection`     | 数据库表/集合                          |
+| `row`         | `document`       | 数据记录行/文档                        |
+| `column`      | `field`          | 数据字段/域                            |
+| `index`       | `index`          | 索引                                   |
+| `table joins` |                  | 表连接，MongoDB不支持                  |
+| `Primary key` | `Primary key`    | 主键，MongoDB自动将`_id`字段设置为主键 |
+
+> [参照 SQL 到 MongoDB 的映射图标 >>](https://docs.mongoing.com/mongodb-crud-operations/sql-to-mongodb-mapping-chart)
+
+
+
+# 二、安装、启动
 
 [点击前往官网下载中心 >>](https://www.mongodb.com/try/download/community)
 
@@ -122,7 +140,7 @@ port=27017
 # 守护进程
 fork=true
 # 绑定ip
-bind_ip=127.0.0.1
+bind_ip=0.0.0.0
 # 开启认证
 auth=true
 ```
@@ -178,7 +196,7 @@ It looks like you are trying to access MongoDB over HTTP on the native driver po
 
 **③. 取消勾选 Install MongoDB Compass**
 
-在安装过程中会出现如下界面，其中**install mongoDB compass**"不要勾选需要去掉，否则可能要很长时间都一直在执行安装。
+在安装过程中会出现如下界面，其中 **install mongoDB compass** 不要勾选需要去掉，否则可能要很长时间都一直在执行安装。
 
 MongoDB Compass 是一个图形界面管理工具，我们可以在后面自己到官网下载安装，[前往下载 >>](https://www.mongodb.com/download-center/compass)。
 
@@ -189,68 +207,64 @@ MongoDB Compass 是一个图形界面管理工具，我们可以在后面自己�
 **④ 安装完成**
 
 - 安装目录下创建db目录：*`E:\MongoDB\data\db`*
-- 然后将bin目录配置进入**环境变量**，配置步骤：右建此电脑 → 属性 → 高级系统设置 → 环境变量
+- 然后将 bin 目录配置进入**环境变量**，配置步骤：右建此电脑 → 属性 → 高级系统设置 → 环境变量
 
 ### 2.2. 配置文件
 
-创建配置文件：*`E:\MongoDB\conf\mongod.conf`*
-
-文件内容同 macOS 环境，注意 db 和 logs 文件目录，如下所示：
+默认安装目录在：*`<install directory>\bin\mongod.cfg`*
 
 ```ini
-# 数据库存放地址
-dbpath=E:\MongoDB\data\db
-# 日志输出文件路径
-logpath=E:\MongoDB\log\mongod.log
-# 错误日志采用追加模式，配置这个选项后mongodb的日志会追加到现有的日志文件，而不是从新创建一个新文件
-logappend=true
-# 启用日志文件，默认启用
-journal=true
-# 这个选项可以过滤掉一些无用的日志信息，若需要调试使用请设置为false
-quiet=true
-# 端口号
-port=27017
-# 绑定ip
-bind_ip=0.0.0.0
-# 开启认证
-auth=false
+# mongod.conf
+
+# for documentation of all options, 
+# see: http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: E:\MongoDB\data
+  journal:
+    enabled: true
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  E:\MongoDB\log\mongod.log
+  quiet: true
+
+# network interfaces
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+
+# security
+security:
+  authorization: enabled
 ```
 
 ### 2.3. 启动服务
 
+打开终端，以 **管理员身份运行**：
+
 ```shell
 # 命令行参数启动
-$ mongod.exe --dbpath E:\MongoDB\data\db --serviceName "MongoDB"
+$ mongod.exe --dbpath E:\MongoDB\data\db --serviceName "MongoDB" --install
 # 配置文件方式启动
-$ mongod.exe --config "E:\MongoDB\conf\mongod.cfg" --install --serviceName "MongoDB"
+$ mongod --config "E:\MongoDB\bin\mongod.cfg" --serviceName "MongoDB" --install
 ```
 
 ```shell
 # 查看服务
 services.msc
 # 启用服务
-net start mongodb
+net start MongoDB
 # 停止服务
-net stop mongodb
+net stop MongoDB
 ```
 
 > **Tips：** 使用管理员模式运行终端，切记切记！
 
-# 三、概念
-
-| SQL术语/概念  | MongoDB术语/概念 | 解释/说明                              |
-| :------------ | :--------------- | :------------------------------------- |
-| `database`    | `database`       | 数据库                                 |
-| `table`       | `collection`     | 数据库表/集合                          |
-| `row`         | `document`       | 数据记录行/文档                        |
-| `column`      | `field`          | 数据字段/域                            |
-| `index`       | `index`          | 索引                                   |
-| `table joins` |                  | 表连接，MongoDB不支持                  |
-| `Primary key` | `Primary key`    | 主键，MongoDB自动将`_id`字段设置为主键 |
-
-> [参照 SQL 到 MongoDB 的映射图标 >>](https://docs.mongoing.com/mongodb-crud-operations/sql-to-mongodb-mapping-chart)
-
-# 四、APIs
+# 三、APIs
 
 ## 1. 用户管理
 
@@ -312,20 +326,11 @@ use <数据库名>
 db
 # 4. 删除数据库
 db.dropDatabase()
-# 5. 查看MongoDB服务器地址
+# 5. 查看服务器地址
 db.getMongo()
 ```
 
 > 提示：刚创建的数据库需要插入数据才能够显示。
-
-```mysql
-> db.stus.insert({name:'Muzili', birth: '1993/07/16', origin: '成都市高新区'})
-> show dbs
-admin    0.000GB
-config   0.000GB
-db_test  0.000GB
-local    0.000GB
-```
 
 ## 3. 集合操作（表）
 
@@ -393,28 +398,77 @@ db.COLLECTION_NAME.insertOne(document)
 
 ### 4.2. 查询文档
 
-**1）查询文档**
+查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：<u>聚合查询（*`aggregate`*）</u> 
 
-语法形式：
+聚合主要用于处理数据（诸如统计平均值，求和等），并返回计算后的数据结果。聚合管道主要包含如下API：
 
-```js
-db.COLLECTION_NAME.find(query, projection)
+| 命令         | 功能描述                                      |
+| ------------ | --------------------------------------------- |
+| *`$match`*   | 选择要处理的文档，与 `find()` 类似            |
+| *`$project`* | 指定输出文档里的字段                          |
+| *`$skip`*    | 跳过一定数量的文档                            |
+| *`$limit`*   | 文档数量                                      |
+| *`$unwind`*  |                                               |
+| *`$group`*   |                                               |
+| *`$lookup`*  |                                               |
+| *`$sort`*    | 排序，*`1`：升序，`-1`：降序，默认为升序显示* |
+
+
+
+插入测试数据：
+
+```mysql
+db.users.insertMany([
+  {"name":"张三", "sex": "男", "age": 31, "phone": "15666666666", "job":"前端工程师", "interest": ["烹饪", "唱歌", "运动"]},
+  {"name":"李四", "sex": "女", "age": 16, "phone": "15777777777", "job":"后端工程师", "interest": ["追剧", "旅行"]},
+  {"name":"赵二", "sex": "男", "age": 28, "phone": "15888888888", "job":"测试工程师", "interest": ["游戏", "摄影"]},
+  {"name":"王五", "sex": "女", "age": 38, "phone": "15999999999", "job":"运维工程师", "interest": ["运动", "旅行"]}
+])
 ```
 
-参数解读：
+##### $match
 
-- `query`：使用查询操作符指定选择过滤器 
-- `projection`：指定返回字段，省略返回所有
-
-示例：
+*`$match`* 用于过滤数据，只输出符合条件的文档
 
 ```markdown
 # 1. 查询所有
-db.COLLECTION_NAME.find({})
-# 2. 等值查询 - 查询 name = ‘tom’ 的数据
-db.COLLECTION_NAME.find({name: 'Tom'})
-# 2. 查询文档中的 name、age 字段，排除 _id 字段。
-db.COLLECTION_NAME.find({}, {_id: false, name: true, age: true});
+db.users.aggregate() 
+# 2. 查询 name = '张三' 的数据
+db.users.aggregate([{ $match: { name: '张三' } }])
+# 3. 查询年龄大于30的数据
+db.users.aggregate([{ $match: { age: { $gt: 30 } } }])
+```
+
+##### $project
+
+*`$project`* 指定输出文档里的字段，`1` 为显示，`0` 为不显示，除 `_id` 外，其他任意字段之间 **不可以** `0` 和 `1` 混用！
+
+```mysql
+db.users.aggregate([
+    { $match: { name: "张三" } },
+    { $project: { _id: 0, id: "$_id", name: 1, job: 1} }
+])
+```
+
+输出结果：
+
+```json
+{ 
+  name: '张三',
+  job: '前端工程师',
+  id: ObjectId("6281c0e0d73b9db975426f2e") 
+}
+```
+
+##### $skip、$limit、$sort
+
+```mysql
+db.users.aggregate([
+    { $match: {} },
+    { $skip: 1 },   # 跳过第1条记录
+    { $limit: 3 },  # 返回3条记录
+    { $sort: { age: -1 } },# 根据 age 降序
+])
 ```
 
 **2）查询操作符**
@@ -428,29 +482,6 @@ db.COLLECTION_NAME.find({}, {_id: false, name: true, age: true});
 - `$lte`：小于等于某个值
 - `$ne`：不等于某个值
 
-代码示例：
-
-```markdown
-# 1. 查询age为20或30岁的数据
-db.COLLECTION_NAME.find({age: {$in: [20, 30]}});
-# 2. 查询age不为20或30岁的数据
-db.COLLECTION_NAME.find({age: {$nin: [20, 30]}});
-# 3. 查询age大于18岁的数据
-db.COLLECTION_NAME.find({age: {$gt: 18}});
-# 4. 查询age小于18岁的数据
-db.COLLECTION_NAME.find({age: {$lt: 18}});
-# 5. 查询name不等于‘Tom’的数据
-db.COLLECTION_NAME.find({name: {$ne: "Tom"}})
-```
-
-**3）正则表达式**
-
-语法形式：
-
-```js
-db.collectoin_name.find({key: /val/})
-```
-
 **4）联合查询**
 
 ```markdown
@@ -458,21 +489,6 @@ db.collectoin_name.find({key: /val/})
 db.COLLECTION_NAME.find({ field1: value1, field2: value2 })
 # 2. or 查询
 db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
-```
-
-**5）分页查询**
-
-```markdown
-# 1. 查询指定数量的数据
-db.COLLECTION_NAME.find().limit(number)
-# 2. 跳过指定数量的数据
-db.COLLECTION_NAME.find().skip(number)
-# 3. 排序：1为升序，-1为降序
-db.COLLECTION_NAME.find().sort({field:1/-1})
-# 4. 分页查询
-> let pageIndex = 3;
-> let pageSize = 3;
-> db.grade1.find().skip((pageIndex - 1) * pageSize).limit(pageSize).sort({username: 1});
 ```
 
 ### 4.3. 更新文档
