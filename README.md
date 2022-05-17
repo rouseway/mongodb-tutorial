@@ -232,7 +232,7 @@ systemLog:
   path:  E:\MongoDB\log\mongod.log
   quiet: true
 
-# network interfaces
+# network intierfaces
 net:
   port: 27017
   bindIp: 0.0.0.0
@@ -277,8 +277,10 @@ db.createUser({user:'账号', pwd:'密码', roles:[{role:'角色名', db: '数�
 db.getUsers()
 # 3. 移除用户
 db.dropUser("用户名")
-# 4. 用户登陆：success: 1, fail: 0
+# 4. 用户登陆
 db.auth(user, pwd) 
+# 5. 修改用户密码
+db.changeUserPassword('用户名', '新密码')
 ```
 
 代码示例：
