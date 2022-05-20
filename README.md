@@ -570,9 +570,17 @@ db.COLLECTION_NAME.deleteMany(query)
 
 # 五、聚合
 
+[聚合管道操作符 >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
+
 查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：聚合管道查询 → [aggregation >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
 
-其思想是将文档（`Document`）在一个管道处理完毕后将结果传递给下一个管道处理
+基于数据处理的聚合管道，每个文档通过一个由多个阶段（`stage`）组成的管道，可以对每个阶段的管道进行分组、过滤等功能，然后经过一系列的处理，输出相应的结果。
+
+通过这张图，可以了解Aggregate处理的过程：
+
+<img src="./images/aggregation.png" style="zoom:70%;" />
+
+
 
 聚合主要用于处理数据（诸如统计平均值，求和等），并返回计算后的数据结果。聚合管道主要包含如下API：
 
@@ -600,7 +608,7 @@ db.users.insertMany([
 ])
 ```
 
-##### $match
+## $match
 
 *`$match`* 用于过滤数据，只输出符合条件的文档
 
@@ -613,7 +621,7 @@ db.users.aggregate([{ $match: { name: '张三' } }])
 db.users.aggregate([{ $match: { age: { $gt: 30 } } }])
 ```
 
-##### $project
+## $project
 
 *`$project`* 指定输出文档里的字段，`1` 为显示，`0` 为不显示，除 `_id` 外，其他任意字段之间 **不可以** `0` 和 `1` 混用！
 
@@ -634,7 +642,7 @@ db.users.aggregate([
 }
 ```
 
-##### \$skip、\$limit、$sort
+### \$skip、\$limit、$sort
 
 列表分页一般会联合这三个操作符使用，其中
 
@@ -654,7 +662,7 @@ db.users.aggregate([
 ])
 ```
 
-##### $lookup
+#### $lookup
 
 [$lookup](https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/) 表关联查询，语法结构如下：
 
@@ -677,7 +685,7 @@ db.users.aggregate([
 - `foreignField`：待Join集合中的match值
 - `as`：输出字段
 
-**4）联合查询**
+## **4）联合查询**
 
 ```markdown
 # 1. and 查询，即指定多个键值
@@ -686,9 +694,49 @@ db.COLLECTION_NAME.find({ field1: value1, field2: value2 })
 db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
 ```
 
+## 扩展示例
+
+### 查询指定用户的排名
+
+思路：排序 → 查找
+
+聚合：`$indexOfArray` / `$group` / `$project `
+
+```mysql
+db.users.insertMany([
+	{name: "周杰伦", sex: "男", age: 39, score: 90 },
+	{name: "林俊杰", sex: "男", age: 36, score: 88 },
+	{name: "罗志祥", sex: "男", age: 34, score: 60 },
+	{name: "蔡依林", sex: "女", age: 35, score: 76 },
+	{name: "王力宏", sex: "男", age: 38, score: 84 }
+])
+```
+
+查询王力宏的排名：
+
+```mysql
+db.users.aggregate([
+	{ $sort: { score: -1 }}, 
+	{ $group: { _id: null, all: { $push: "$name" }} }, 
+	{ $project: { total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  "王力宏"] }}}
+])
+```
+
+根据 ObjectId 来查询排名：
+
+```mysql
+db.users.aggregate([
+	{ $sort: { score: -1 }}, 
+	{ $group: { _id: null, all: { $push: "$_id" }} }, 
+	{ $project: { total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  Object(id值)] }}}
+])
+```
 
 
-## 6. 索引
+
+
+
+# 六、 索引
 
 ### 6.1. 概述
 
