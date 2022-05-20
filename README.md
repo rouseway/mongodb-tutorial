@@ -4,8 +4,6 @@
 
 [mongoosejs-docs >>](https://mongoosejs.com/docs/guide.html)
 
-[mongoDB 官方文档中文版 >>](http://mongoosejs.net/docs/)
-
 MongoDB是一个由C++ 语言编写的 **基于分布式文件存储的数据库**
 
 MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）对组成。MongoDB 文档类似于 JSON 对象。字段值可以包含其他文档，数组及文档数组。
@@ -264,7 +262,7 @@ net stop MongoDB
 
 > **Tips：** 使用管理员模式运行终端，切记切记！
 
-# 三、APIs
+# 三、管理构建
 
 ## 1. 用户管理
 
@@ -376,29 +374,201 @@ db.createCollection('usrs', {capped: true, size:6142800, max: 10000})
 > - 在插入文档时，MongoDB 首先检查固定集合的 size 字段，然后检查 max 字段，然后autoIndexId属性已经被遗弃了，未来将会被删除。
 > - 在 MongoDB 中，其实当你插入一些文档时，MongoDB 也会自动创建集合。
 
-## 4. 文档操作（行）*
+# 四、CURD
 
-### 4.1. 插入文档
+> **Tips：** 示例基于 `inventory` 表操作。
 
-插入文档，类似于mysql 插入一行数据。
+## 1. 插入文档
+
+```mysql
+# 插入单个文档
+db.inventory.insertOne(document)
+# 插入多个文档
+db.inventory.insertMany([document...])
+```
+
+**Tips：**插入文档时如果没有指定id，MongoDB会自动生成 `_id`，类型为 `ObjectId`
+
+## 2. 查询文档
+
+### 基础查询
+
+示例数据：
+
+```mysql
+db.inventory.insertMany([
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+]);
+```
+
+代码示例：
+
+```mysql
+# 选择集合中的所有文档
+db.inventory.find({})
+# 返回 status = D 的数据
+db.inventory.find( { status: "D" } )
+# 返回 status = A 或者 D 的数据
+db.inventory.find( { status: { $in: [ "A", "D" ] } } )
+# $and → 复合查询，返回 status = A 并且 qty < 30 的数据
+db.inventory.find( { status: "A", qty: { $lt: 30 } } )
+# $or → 返回 status = A，或者  qty < 30 的数据
+db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
+# $and 和 $or 组合查询
+# 示例：查询 status = A 并且 （qty < 30 或者 item 以 p 开头） 的数据
+db.inventory.find( {
+     status: "A",
+     $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
+} )
+```
+
+**数组查询**
+
+示例数据：
+
+```mysql
+db.inventory.insertMany([
+   { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ] },
+   { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ] },
+   { item: "paper", qty: 100, tags: ["red", "blank", "plain"], dim_cm: [ 14, 21 ] },
+   { item: "planner", qty: 75, tags: ["blank", "red"], dim_cm: [ 22.85, 30 ] },
+   { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
+]);
+```
+
+代码示例：
+
+```mysql
+# 条件查询，tags = ["red", "blank"] 的数据
+db.inventory.find( { tags: ["red", "blank"] } )
+# $all → 包含查询，只要 tags 包含 red 和 blank，都返回
+db.inventory.find( { tags: { $all: ["red", "blank"] } } )
+# 查询 tags 中包含 red 的数据
+db.inventory.find( { tags: "red" } )
+# 查询 dim_cm 集合中至少有一个值大于 25 对的数据
+db.inventory.find( { dim_cm: { $gt: 25 } } )
+```
+
+维数组元素指定多个条件：
+
+```mysql
+# dim_cm 的元素可以大于15或者小于20或者两个都满足
+db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+```
+
+### 附录1：查询操作符
+
+- `$in`：查询值为指定集合中某个元素时
+- `$nin`：查询值不为指定集合中某个元素时
+- `$gt[e]`：大于[等于]某个值
+- `$lt[e]`：小于[等于]某个值
+- `$ne`：不等于某个值
+- `$or`：或查询
+- `$all`：匹配所有
+
+### 数据映射
+
+```mysql
+
+# 指定返回字段，比如只返回 name/sex，通过0/1控制映射
+db.users.find({ name: "李白" }, { name: 1, sex: 1} )
+# 去除_id字段
+db.users.find({ name: "李白" }, { name: 1, sex: 1, _id: 0 } )
+# 去除指定字段，比如返回数据中去除 interest 和 location 字段
+db.users.find({ name: "李白" }, { interest: 0, location: 0  } )
+# 映射返回数组中指定的数组元素，$slice 表示截取最后1个元素，不能使用下标
+db.users.find({ name: "李白" }, { interest: { $slice: -1 } } )
+```
+
+> `！Tips`
+>
+> - 除 `_id` 字段外，不能在映射文档中同时使用包含和去除语句。
+
+## 3. 更新文档
+
+语法解读：
 
 ```markdown
-# 1. 插入一个文档
-db.COLLECTION_NAME.insertOne(document)
-# 2. 插入多个数据
-db.COLLECTION_NAME.insertMany(document[])
+# 1. 更新一个文档
+db.COLLECTION_NAME.updateOne(query, update, options)
+# 2. 更新多个文档
+db.COLLECTION_NAME.updateMany(query, update, options)
 ```
 
-**① 复用性插入**
+语法解读：
 
-为了让数据可以更好的复用，我们可以先把要插入的数据，定义为一个变量，然后再进行插入。
+- `query` ：查询条件
+- `update`：更新后的对象或指定一些更新的操作符
+- `options`：可选项
+  - `upsert`：可选，未查询到时是否插入updateObj，默认false。
+  - `multi`：可选，是否更新所有查询到的文档，默认false。
 
-```shell
-document=({name:"赵六"})
-db.COLLECTION_NAME.insertOne(document)
+**操作符**
+
+##### $inc
+
+在原基础上累加
+
+```js
+{ $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
 ```
 
-### 4.2. 查询文档
+```mysql
+db.users.updateOne({name:'张三'}, {$inc: { age: 10 }})
+```
+
+代码描述：查询 name 为张三的记录，并将其 age 字段累加10
+
+##### $push
+
+向数组中添加元素，不会覆盖已有的
+
+```js
+{ $push: { <field1>: <value1>, ... } }
+```
+
+```mysql
+db.users.updateOne({name:'张三'}, {$push: { interest : "爬山" }})
+```
+
+代码描述：查询 name 为张三的记录，并在 interest 中追加 爬山 
+
+##### $addToSet
+
+给数组添加或者设置一个值
+
+```js
+{ $addToSet: { <field1>: <value1>, ... } }
+```
+
+##### $set
+
+更新字段
+
+```js
+{ $set: { <field1>: <value1>, ... } }
+```
+
+```mysql
+db.users.updateOne({name:'张三'}, {$set: { sex : "女" }})
+```
+
+代码解读：查询 name 为张三的记录，并将其 sex 字段更新为 女。
+
+## 4. 删除文档
+
+```markdown
+# 1. 删除单个文档
+db.COLLECTION_NAME.deleteOne(query)
+# 2. 删除多个文档
+db.COLLECTION_NAME.deleteMany(query)
+```
+
+# 五、聚合
 
 查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：聚合管道查询 → [aggregation >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
 
@@ -507,19 +677,6 @@ db.users.aggregate([
 - `foreignField`：待Join集合中的match值
 - `as`：输出字段
 
-##### 附录：查询操作符
-
-| 操作符   | 描述                           | 示例                                                |
-| -------- | ------------------------------ | --------------------------------------------------- |
-| *`$in`*  | 查询值为指定集合中某个元素时   | *`{ $match: { name: { $in: ['张三', '李四'] } } }`* |
-| *`$nin`* | 查询值不为指定集合中某个元素时 |                                                     |
-| *`$gt`*  | 大于某个值                     |                                                     |
-| *`$gte`* | 大于等于某个值                 |                                                     |
-| *`$lt`*  | 小于某个值                     |                                                     |
-| *`$lte`* | 小于等于某个值                 |                                                     |
-| *`$ne`*  | 不等于某个值                   |                                                     |
-| `$or`    | OR 查询                        |                                                     |
-
 **4）联合查询**
 
 ```markdown
@@ -529,85 +686,7 @@ db.COLLECTION_NAME.find({ field1: value1, field2: value2 })
 db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
 ```
 
-### 4.3. 更新文档
 
-语法解读：
-
-```markdown
-# 1. 更新一个文档
-db.COLLECTION_NAME.updateOne(query, update, options)
-# 2. 更新多个文档
-db.COLLECTION_NAME.updateMany(query, update, options)
-```
-
-语法解读：
-
-- `query` ：查询条件
-- `update`：更新后的对象或指定一些更新的操作符
-- `options`：可选项
-  - `upsert`：可选，未查询到时是否插入updateObj，默认false。
-  - `multi`：可选，是否更新所有查询到的文档，默认false。
-
-**操作符**
-
-##### $inc
-
-在原基础上累加
-
-```js
-{ $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
-```
-
-```mysql
-db.users.updateOne({name:'张三'}, {$inc: { age: 10 }})
-```
-
-代码描述：查询 name 为张三的记录，并将其 age 字段累加10
-
-##### $push
-
-向数组中添加元素，不会覆盖已有的
-
-```js
-{ $push: { <field1>: <value1>, ... } }
-```
-
-```mysql
-db.users.updateOne({name:'张三'}, {$push: { interest : "爬山" }})
-```
-
-代码描述：查询 name 为张三的记录，并在 interest 中追加 爬山 
-
-##### $addToSet
-
-给数组添加或者设置一个值
-
-```js
-{ $addToSet: { <field1>: <value1>, ... } }
-```
-
-##### $set
-
-更新字段
-
-```js
-{ $set: { <field1>: <value1>, ... } }
-```
-
-```mysql
-db.users.updateOne({name:'张三'}, {$set: { sex : "女" }})
-```
-
-代码解读：查询 name 为张三的记录，并将其 sex 字段更新为 女。
-
-### 4.4. 删除文档
-
-```markdown
-# 1. 删除单个文档
-db.COLLECTION_NAME.deleteOne(query)
-# 2. 删除多个文档
-db.COLLECTION_NAME.deleteMany(query)
-```
 
 ## 6. 索引
 
@@ -715,47 +794,7 @@ MongoDB会自动对speciality字段的数据进行分词，然后我们就可以
 > db.heros.find({$text:{$search:"突进"}})
 ```
 
-# 五、Exports
 
-## 1. 导入
-
-语法形式：
-
-```shell
-$ mongoimport -h 主机名 -d 数据库名 -c 集合名 导入文件的地址
-```
-
-> 提示：如果mongoDB设置了用户权限，则主机名的格式为：`user:pwd@host:port`，如果没有设置用户权限，则直接设置为 `host:port` 即可。
-
-> 注意：JSON 文件数据格式如下
->
-> ```markdown
-> {name: "周瑜", position: "法师", speciality: "远程消耗"}
-> {name: "嬴政", position: "法师", speciality: "远程消耗"}
-> {name: "李白", position: "刺客", speciality: "突进收割"}
-> ```
-
-代码示例：
-
-```shell
-$ mongoimport -h root:123@localhost:27017  -d db_test -c heros  /Users/lihongyao/Desktop/heros.json 
-```
-
-## 2. 导出
-
-语法形式：
-
-```shell
-$ mongoexport -h 主机名 -d 数据库名 -c 集合名 -o 导出文件路径
-```
-
-> 提示：如果mongoDB设置了用户权限，则主机名的格式为：`user:pwd@host:port`，如果没有设置用户权限，则直接设置为 `host:port` 即可。
-
-代码示例：
-
-```shell
-$ mongoexport -h root:123@localhost:27017 -d db_test -c stus -o /Users/lihongyao/Desktop/stus.json 
-```
 
 # 六、内置运算符
 
@@ -763,23 +802,13 @@ $ mongoexport -h root:123@localhost:27017 -d db_test -c stus -o /Users/lihongyao
 
 # 七、可视化工具
 
-1. [前往下载 MongoDB Compass >>](https://www.mongodb.com/try/download/compass)
+1. [前往下载 Nacicat Premium >>](https://www.navicat.com.cn/products/navicat-premium)
+2. [前往下载 MongoDB Compass >>](https://www.mongodb.com/try/download/compass)
+3. [前往下载 Robo 3T >>](https://studio3t.com/download/)
 
-2. [前往下载 Robo 3T >>](https://studio3t.com/download/)
+参考指南：
 
-## MongoDB Compass
-
-**①. 打开界面，点击 Fill in connection fields individually**
-
-![](./images/compass_1.png)
-
-**② 填写连接项**
-
-![](./images/compass_2.png)
-
-**③ 连接成功之后就可以进行基本操作了，你可以使用图形界面进行：数据库、集合和文档的管理。**
-
-![](./images/compass_3.png)
+- [Navicat Premium 16.0.10 破解安装指南 >>](https://cloud.tencent.com/developer/article/1953103)
 
 # 八、扩展
 
