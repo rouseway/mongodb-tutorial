@@ -1,37 +1,32 @@
 # 一、概述
 
-[mongodb-docs >>](https://www.mongodb.com/docs/)
+[mongodb-org >>](https://www.mongodb.com/docs/manual/)
 
 [mongoosejs-docs >>](https://mongoosejs.com/docs/guide.html)
 
-MongoDB是一个由C++ 语言编写的 **基于分布式文件存储的数据库**
+MongoDB是一个由C++ 语言编写的 **基于分布式文件存储的数据库**。
 
-MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）对组成。MongoDB 文档类似于 JSON 对象。字段值可以包含其他文档，数组及文档数组。
+MongoDB中的一条记录是一个文档，它是一个由字段和值对组成的数据结构。MongoDB文档类似于JSON对象。字段的值可以包括其他文档、数组和文档数组。
 
 ![](./images/form.png)
 
-## 1. vs mySql
+**@优势**:
+
+- 在许多编程语言中，文档对应于本地数据类型。
+- 嵌入的文档和数组减少了对昂贵连接的需要。
+- 动态模式支持连贯多态性。
+
+**@vs mySql**
 
 - Mysql 数据库是类似于Excel **表格式** 的数据，这种表格式的数据库也称之为 **关系型数据库**，表叫做**关系表**。
 
 - MongoDB 数据库存储的是类似 **JSON** 格式的数据，称之为 **bson**，这种数据库由于比较自由，数据间并不一定有关系，我们称之为**非关系型数据库**。然后又由于不是表结构，我们不再使用sql语句去操作他，所以我们也称MongoDB为 **nosql** 数据库的一种。
 
-## 2. 特点
+**@特点**
 
 高性能、易部署、易使用，存储数据非常方便。
 
-## 3. 诞生目的
-
-**MongoDB** 是 **mysql** 等关系型数据库的一种补充。无可否认的，mysql等关系型数据库非常有用，并且在很多业务场景中都发挥了极大的作用。但是，它并不是万能的。在进入到web2.0时代（由用户主导而生成的内容互联网产品模式）后，mysql遇到了很多他没法实现或很难实现的问题，但是这个问题却又必须要解决，于是就诞生了nosql系列的非关系型数据，其中MongoDB就是一个代表。
-
-所以MongoDB的诞生目的就是为了补充mysql等关系数据库不足的，即用来完成mysql等数据库无法完成或很难完成的任务。例如：
-
-- 数据的高并发读写
-- 数据的海量数据存储
-- 数据的高可扩展性
-- 数据的高可用性
-
-## 4. 概念
+**@概念**
 
 | SQL术语/概念  | MongoDB术语/概念 | 解释/说明                              |
 | :------------ | :--------------- | :------------------------------------- |
@@ -45,9 +40,9 @@ MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）�
 
 > [参照 SQL 到 MongoDB 的映射图标 >>](https://docs.mongoing.com/mongodb-crud-operations/sql-to-mongodb-mapping-chart)
 
-
-
 # 二、安装、启动
+
+## 1. 下载
 
 [点击前往官网下载中心 >>](https://www.mongodb.com/try/download/community)
 
@@ -55,7 +50,9 @@ MongoDB 将数据存储为一个文档，数据结构由键值（`key:value`）�
 
 根据系统，选择相应的安装包。
 
-## 1. macOS
+## 2. 安装
+
+### macOS
 
 **① 将压缩包解压至任意位置，我放在 *`/usr/local/`* 目录下，并重新命名为 *`mongodb`***
 
@@ -66,7 +63,8 @@ $ open ~/.bash_profile
 ```
 
 ```shell
-export PATH=$PATH:/usr/local/mongodb/bin 
+export MONGODB=/usr/local/mongodb/bin 
+export PATH=$PATH:$MONGODB
 ```
 
 **③ 查看版本，如果正常显示版本号则安装成功**
@@ -74,113 +72,17 @@ export PATH=$PATH:/usr/local/mongodb/bin
 ```shell
 $ mongo --version
 MongoDB shell version v5.0.3
-Build Info: {
-    "version": "5.0.3",
-    "gitVersion": "657fea5a61a74d7a79df7aff8e4bcf0bc742b748",
-    "modules": [],
-    "allocator": "system",
-    "environment": {
-        "distarch": "x86_64",
-        "target_arch": "x86_64"
-    }
-}
 ```
 
-**# Brew 下载**
-
-[参考地址 >>](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/)
+**④ 创建目录**
 
 ```shell
-$ brew tap mongodb/brew
-$ brew install mongodb-community@4.2
-$ mongo --version
-MongoDB shell version v4.2.2
-git version: a0bbbff6ada159e19298d37946ac8dc4b497eadf
-allocator: system
-modules: none
-build environment:
-    distarch: x86_64
-    target_arch: x86_64
-```
-
-### 1.2. 创建目录
-
-```shell
-# 进入安装目录
 $ cd /usr/local/mongodb/
-# 创建日志输出、数据库目录
 $ mkdir -p data/logs data/db
-# 进入日志输出目录并创建日志文件
 $ cd /data/logs && touch mongodb.log
 ```
 
-### 1.3. 配置文件
-
-```shell
-$ vim /etc/mongodb.conf
-```
-
-按 `i` 输入如下内容：
-
-```ini
-# 数据库存放地址
-dbpath=/usr/local/mongodb/data/db
-# 日志输出文件路径
-logpath=/usr/local/mongodb/data/logs/mongodb.log
-# 错误日志采用追加模式，配置这个选项后mongodb的日志会追加到现有的日志文件，而不是从新创建一个新文件
-logappend=true
-# 启用日志文件，默认启用
-journal=true
-# 这个选项可以过滤掉一些无用的日志信息，若需要调试使用请设置为false
-quiet=true
-# 端口号
-port=27017
-# 守护进程
-fork=true
-# 绑定ip
-bind_ip=0.0.0.0
-# 开启认证
-auth=true
-```
-
-按 `ESC` 输入 `:wq!` 保存退出！
-
-### 1.4. 运行
-
-```shell
-# 通过配置文件启动mongodb
-$ mongod -f /etc/mongodb.conf
-```
-
-如果出现successful就表示服务已经启动成功
-
-浏览器输入：
-
-```
-http://localhost:27017/
-```
-
-网页呈现如下信息即表示成功：
-
-```markdown
-It looks like you are trying to access MongoDB over HTTP on the native driver port.
-```
-
-> 提示：后续使用mongodb只需要打开终端输入mongo指令即可。
-
-### 1.5. 重启服务
-
-1）打开mac 启动台 → 其他 → 活动监视器 → 删除 mongodb 服务
-
-2）在 *`data/db/`* 目录下删除 mongod.lock 文件
-
-3）终端执行：`mongod --repair`
-
-4）根据配置文件启动：`mongod -f /etc/mongodb.conf`
-
-## 2. Windows
-
-### 2.1. 安装
+### windows
 
 **① 下载 msi 文件之后，双击安装**
 
@@ -207,9 +109,19 @@ MongoDB Compass 是一个图形界面管理工具，我们可以在后面自己�
 - 安装目录下创建db目录：*`E:\MongoDB\data\db`*
 - 然后将 bin 目录配置进入**环境变量**，配置步骤：右建此电脑 → 属性 → 高级系统设置 → 环境变量
 
-### 2.2. 配置文件
+## 3. 配置文件
 
-默认安装目录在：*`<install directory>\bin\mongod.cfg`*
+[参考文档 >>](https://www.mongodb.com/docs/manual/reference/configuration-options/)
+
+文件位置：
+
+- macOS：*` /usr/local/etc/mongod.conf`*
+
+- windows：*`<install directory>\bin\mongod.cfg`*
+
+> **！Tips：**上面一般是默认的配置文件位置，如果没有找到对应的配置文件，可自行在安装位置 `bin` 目录下新建配置文件即可。
+
+配置文件，以 `macOs` 为例：
 
 ```ini
 # mongod.conf
@@ -217,38 +129,64 @@ MongoDB Compass 是一个图形界面管理工具，我们可以在后面自己�
 # for documentation of all options, 
 # see: http://docs.mongodb.org/manual/reference/configuration-options/
 
-# Where and how to store data.
+# 数据库设置 
 storage:
-  dbPath: E:\MongoDB\data
+  dbPath: /usr/local/mongodb/data/db
   journal:
     enabled: true
 
-# where to write logging data.
+# 日志管理
 systemLog:
   destination: file
   logAppend: true
-  path:  E:\MongoDB\log\mongod.log
+  path:  /usr/local/mongodb/data/logs/mongodb.log
   quiet: true
-
-# network intierfaces
+ 
+# 进程守护（！Tips：windows 不支持） 
+processManagement:
+   fork: true
+   
+# 网络设置
 net:
   port: 27017
   bindIp: 0.0.0.0
 
-# security
+# 安全认证
 security:
   authorization: enabled
 ```
 
-### 2.3. 启动服务
+> **！Tips**：
+>
+> - `windows` 不支持进程守护
+> - 你应该将 `storage.dbpath` 和 `systemLog.path` 设置为你本地地址。
+
+## 4. 启动
+
+### macOS
+
+```shell
+$ mongod -f /etc/mongodb.conf
+```
+
+> **！Tips**：注意配置文件的位置。
+
+重启服务
+
+- 打开mac 启动台 → 其他 → 活动监视器 → 删除 mongodb 服务
+
+- 在 *`data/db/`* 目录下删除 `mongod.lock` 文件
+
+- 终端执行：`mongod --repair`
+
+- 根据配置文件启动：`mongod -f /etc/mongodb.conf`
+
+### windows
 
 打开终端，以 **管理员身份运行**：
 
 ```shell
-# 命令行参数启动
-$ mongod.exe --dbpath E:\MongoDB\data\db --serviceName "MongoDB" --install
-# 配置文件方式启动
-$ mongod --config "E:\MongoDB\bin\mongod.cfg" --serviceName "MongoDB" --install
+$ mongod -f "E:\MongoDB\bin\mongod.cfg" --serviceName "MongoDB" --install
 ```
 
 ```shell
@@ -262,93 +200,61 @@ net stop MongoDB
 
 > **Tips：** 使用管理员模式运行终端，切记切记！
 
-# 三、管理构建
+## 5. 验证
 
-## 1. 用户管理
+如果出现 successful 就表示服务已经启动成功
 
-1）基础命令
+浏览器输入：
 
-```markdown
-# 1. 创建用户
-db.createUser({user:'账号', pwd:'密码', roles:[{role:'角色名', db: '数据库名'}]})
-# 2. 查看用户
-db.getUsers()
-# 3. 移除用户
-db.dropUser("用户名")
-# 4. 用户登陆
-db.auth(user, pwd) 
-# 5. 修改用户密码
-db.changeUserPassword('用户名', '新密码')
+```
+http://localhost:27017/
 ```
 
-代码示例：
+网页呈现如下信息即表示成功：
+
+```markdown
+It looks like you are trying to access MongoDB over HTTP on the native driver port.
+```
+
+# 三、Databases and Collections
+
+[参考指南 >>](https://www.mongodb.com/docs/manual/core/databases-and-collections/)
+
+## 1. Databases
 
 ```mysql
-# 创建超级用户
-> use admin
-> db.createUser({user:'root', pwd:'123', roles:[{role:'root', db: 'admin'}]})
-# 创建普通用户
-> db.createUser({user:'lee', pwd:'123', roles:[{role:'readWrite', db: 'DB-TEST'}]})
-```
-
-> 提示：创建普通用户时需先登陆超级用户再创建。
-
-2）角色分类
-
-- 数据库用户角色：`read`、`readWrite`
-- 数据库管理员角色：`dbAdmin`、`dbOwner`、`userAdmin`
-- 集群管理员角色：`clusterAdmin`、`clusterManager`、`clusterMonitor`、`hostManager`
-- 备份和恢复角色：`backup`、`restore`
-- 所有数据库角色：`readAnyDatabase`、`readWriteAnyDatabase`、`userAdminAnyDatabase`、`dbAdminAnyDatabase`
-- 超级用户角色：`root`
-
-3）角色功能
-
-- `read`：允许用户读取指定数据库
-- `readWrite`：允许用户读写指定数据库
-- `readAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读权限
-- `readWriteAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读写权限
-- `dbAdmin`：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问`system.profile`
-- `dbAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`dbAdmin`权限。
-- `userAdmin`：允许用户向`system.users`集合写入，可以找指定数据库里创建、删除和管理用户
-- `userAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`userAdmin`权限
-- `clusterAdmin`：只在`admin`数据库中可用，赋予用户所有分片和复制集相关函数的管理权限。
-- `root`：只在`admin`数据库中可用。超级账号，超级权限
-
-## 2. 数据库操作
-
-```markdown
 # 1. 查看数据库
-show dbs
+show dbs 
 # 2. 创建/切换数据库
-use <数据库名>
+use dbname
 # 3. 查看当前数据库
 db
 # 4. 删除数据库
 db.dropDatabase()
 # 5. 查看服务器地址
 db.getMongo()
+# 6. 重命名数据库
 ```
 
 > 提示：刚创建的数据库需要插入数据才能够显示。
 
-## 3. 集合操作（表）
+## 2. Collections
 
 1）常用指令：
 
-```markdown
-# 1. 查看集合帮助
-db.<数据库名>.help()
-# 2. 创建集合
+```mysql
+# 1. 创建集合
 db.createCollection(name, options)
-# 3. 创建集合并插入一个文档
-db.COLLECTION_NAME.insert(文档对象)
-# 4. 查看集合
+# 2. 创建集合并插入一个文档
+db.COLLECTION_NAME.insert(document)
+# 3. 查看集合
 show collections / show tables
-# 5. 删除集合
+# 4. 删除集合
 db.COLLECTION_NAME.drop()
-# 6. 修改表名
+# 5. 修改表名
 db.COLLECTION_NAME.renameCollection("NEW_NAME");
+# 6. 清空表数据
+db.COLLECTION_NAME.remove({})
 ```
 
 2）示例：
@@ -376,18 +282,42 @@ db.createCollection('usrs', {capped: true, size:6142800, max: 10000})
 
 # 四、CURD
 
-> **Tips：** 示例基于 `inventory` 表操作。
+```mysql
+# 创建数据库 → dbName：manual
+use manual
+```
 
 ## 1. 插入文档
 
+语法：
+
 ```mysql
 # 插入单个文档
-db.inventory.insertOne(document)
+db.<collection-name>.insertOne(document)
 # 插入多个文档
-db.inventory.insertMany([document...])
+db.<collection-name>.insertMany([document...])
 ```
 
-**Tips：**插入文档时如果没有指定id，MongoDB会自动生成 `_id`，类型为 `ObjectId`
+示例代码：
+
+```mysql
+# 插入当个文档
+db.examples.insertOne({name: "李鸿耀", job: "打工人" });
+# 插入多个文档
+db.examples.insertMany([
+	{ name: "马化腾", job: "腾讯CEO" },
+	{ name: "马云", job: "阿里巴巴CEO" }
+])
+# 查询数据
+db.example.find({})
+```
+
+![](./images/insert_example.png)
+
+> **！Tips：**
+>
+> - 插入文档时如果没有指定 `id`，MongoDB 会自动生成 `_id`，类型为 `ObjectId`
+> - 当你直接执行插入文档的操作，如果数据库没有对应的表，会为你自动创建。
 
 ## 2. 查询文档
 
@@ -396,93 +326,85 @@ db.inventory.insertMany([document...])
 示例数据：
 
 ```mysql
-db.inventory.insertMany([
-   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
-   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
-   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
-   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
-   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+db.examples.insertMany([
+	{name: "周杰伦", sex: "男", age: 40, tags: ["歌手"], score: { chinese: 58, english:　80 } },
+	{name: "谢霆锋", sex: "男", age: 43, tags: ["歌手", "演员", "厨师"], score: { chinese: 76, english:　90 } },
+	{name: "张学友", sex: "男", age: 56, tags: ["歌手", "演员"], score: { chinese: 80, english:　92 } },
+	{name: "刘德华", sex: "男", age: 64, tags: ["歌手", "演员", "慈善家"], score: { chinese: 76, english:　90 } },
+	{name: "蔡依林", sex: "女", age: 43, tags: ["歌手", "舞者"], score: { chinese: 68, english:　83 } },
+	{name: "冯小刚", sex: "男", age: 60, tags: ["导演", "演员"], score: { chinese: 79, english:　68 } },
+	{name: "白岩松", sex: "男", age: 63, tags: ["主持人"], score: { chinese: 98, english:　87 } },
+	{name: "李鸿耀", sex: "男", age: 30, tags: ["打工人"], score: { chinese: 82, english:　60 } },
+	{name: "董明珠", sex: "女", age: 58, tags: ["企业家"], score: { chinese: 84, english:　88 } },
+	{name: "撒贝宁", sex: "男", age: 46, tags: ["主持人"], score: { chinese: 100, english:　93 } },
 ]);
 ```
 
 代码示例：
 
-```mysql
-# 选择集合中的所有文档
-db.inventory.find({})
-# 返回 status = D 的数据
-db.inventory.find( { status: "D" } )
-# 返回 status = A 或者 D 的数据
-db.inventory.find( { status: { $in: [ "A", "D" ] } } )
-# $and → 复合查询，返回 status = A 并且 qty < 30 的数据
-db.inventory.find( { status: "A", qty: { $lt: 30 } } )
-# $or → 返回 status = A，或者  qty < 30 的数据
-db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
-# $and 和 $or 组合查询
-# 示例：查询 status = A 并且 （qty < 30 或者 item 以 p 开头） 的数据
-db.inventory.find( {
-     status: "A",
-     $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
-} )
-```
+- 查询所有数据
 
-**数组查询**
+  ![](./images/find-eg-1.png)
 
-示例数据：
+- 查询 sex = ’男‘ 的数据
 
-```mysql
-db.inventory.insertMany([
-   { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ] },
-   { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ] },
-   { item: "paper", qty: 100, tags: ["red", "blank", "plain"], dim_cm: [ 14, 21 ] },
-   { item: "planner", qty: 75, tags: ["blank", "red"], dim_cm: [ 22.85, 30 ] },
-   { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
-]);
-```
+  ![](./images/find-eg-2.png)
 
-代码示例：
+- $in → 查询姓名为’谢霆锋‘ 或者 ”诸葛亮“ 的记录
 
-```mysql
-# 条件查询，tags = ["red", "blank"] 的数据
-db.inventory.find( { tags: ["red", "blank"] } )
-# $all → 包含查询，只要 tags 包含 red 和 blank，都返回
-db.inventory.find( { tags: { $all: ["red", "blank"] } } )
-# 查询 tags 中包含 red 的数据
-db.inventory.find( { tags: "red" } )
-# 查询 dim_cm 集合中至少有一个值大于 25 对的数据
-db.inventory.find( { dim_cm: { $gt: 25 } } )
-```
+  ![](./images/find-eg-3.png)
 
-维数组元素指定多个条件：
+- $and → 查询年龄大于等于60的男性
 
-```mysql
-# dim_cm 的元素可以大于15或者小于20或者两个都满足
-db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
-```
+  ![](./images/find-eg-4.png)
 
-### 附录1：查询操作符
+- $or → 查询性别为女 或者 年龄大于60的数据
 
-- `$in`：查询值为指定集合中某个元素时
-- `$nin`：查询值不为指定集合中某个元素时
-- `$gt[e]`：大于[等于]某个值
-- `$lt[e]`：小于[等于]某个值
-- `$ne`：不等于某个值
-- `$or`：或查询
-- `$all`：匹配所有
+  ![](./images/find-eg-5.png)
+
+- \$or + $And → 查询性别为男，并且年龄小于等于30或者语文成绩大于90的数据
+
+  ![](./images/find-eg-6.png)
+
+### 数组查询
+
+- 查询 tags 等于 ["歌手", "演员"] 的数据（元素和顺序一致）
+
+  ![](./images/find-eg-7.png)
+
+  
+
+- $all → 查询只要 tags 包含 歌手 和 演员 的数据
+
+  ![](./images/find-eg-8.png)
+
+- 查询 tags 包含 演员的数据，只要有演员就返回：
+
+  ![](./images/find-eg-9.png)
 
 ### 数据映射
 
-```mysql
+通过设置 `find` 的第二个参数可以控制是否返回某些列，`0`：隐藏 / `1`：显示
 
-# 指定返回字段，比如只返回 name/sex，通过0/1控制映射
-db.users.find({ name: "李白" }, { name: 1, sex: 1} )
-# 去除_id字段
-db.users.find({ name: "李白" }, { name: 1, sex: 1, _id: 0 } )
-# 去除指定字段，比如返回数据中去除 interest 和 location 字段
-db.users.find({ name: "李白" }, { interest: 0, location: 0  } )
-# 映射返回数组中指定的数组元素，$slice 表示截取最后1个元素，不能使用下标
-db.users.find({ name: "李白" }, { interest: { $slice: -1 } } )
-```
+- 指定返回字段，比如只返回 name/sex/age
+
+  ![](./images/find-map-1.png)
+
+- 隐藏 `_id` 字段
+
+  ![](./images/find-map-2.png)
+
+- 去除指定字段，比如示例中我们去除 `tags` 字段，未设置的将会显示
+
+  ![](./images/find-map-3.png)
+
+- 映射返回数组中指定的数组元素，$slice 表示截取最后1个元素，不能使用下标
+
+  如下示例查询谢霆锋的记录，并且隐藏 `_id` `score` `age`，其中 `tags` 只返回列表中的最后一个数据。
+
+  ![](./images/find-map-4.png)
+
+  
 
 > `！Tips`
 >
@@ -490,14 +412,11 @@ db.users.find({ name: "李白" }, { interest: { $slice: -1 } } )
 
 ## 3. 更新文档
 
-语法解读：
+插入文档Apis：
 
-```markdown
-# 1. 更新一个文档
-db.COLLECTION_NAME.updateOne(query, update, options)
-# 2. 更新多个文档
-db.COLLECTION_NAME.updateMany(query, update, options)
-```
+- [`db.collection.updateOne(filter, update, options)`](https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/#mongodb-method-db.collection.updateOne)
+- [`db.collection.updateMany(filter, update, options)`](https://www.mongodb.com/docs/manual/reference/method/db.collection.updateMany/#mongodb-method-db.collection.updateMany)
+- [`db.collection.replaceOne(filter, update, options)`](https://www.mongodb.com/docs/manual/reference/method/db.collection.replaceOne/#mongodb-method-db.collection.replaceOne)
 
 语法解读：
 
@@ -505,25 +424,41 @@ db.COLLECTION_NAME.updateMany(query, update, options)
 - `update`：更新后的对象或指定一些更新的操作符
 - `options`：可选项
   - `upsert`：可选，未查询到时是否插入updateObj，默认false。
-  - `multi`：可选，是否更新所有查询到的文档，默认false。
+  - `multi`：可选，是否更新所有查询到的文档，默认 false。
 
-**操作符**
+一般来讲，更新数据可使用 操作符，具体如下：
 
-##### $inc
+### $set
 
-在原基础上累加
-
-```js
-{ $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
-```
+更新字段
 
 ```mysql
-db.users.updateOne({name:'张三'}, {$inc: { age: 10 }})
+db.examples.update(
+	{name: "周杰伦"},     
+	{ 
+		$set: { age: 30 }, 
+		$currentDate: { lastModified: true } 
+	}
+)
 ```
 
-代码描述：查询 name 为张三的记录，并将其 age 字段累加10
+### $inc
 
-##### $push
+在原基础上累加：
+
+```mysql
+db.examples.update(
+	{name: "周杰伦"},
+	{ 
+		$inc: { age: 10 },
+		$currentDate: { lastModified: true }
+	}
+)
+```
+
+代码描述：查询 name 为周杰伦的记录，并将其 age 字段累加10
+
+### $push
 
 向数组中添加元素，不会覆盖已有的
 
@@ -532,32 +467,21 @@ db.users.updateOne({name:'张三'}, {$inc: { age: 10 }})
 ```
 
 ```mysql
-db.users.updateOne({name:'张三'}, {$push: { interest : "爬山" }})
+db.examples.update(
+	{name: "周杰伦"},     
+	{ 
+		$push: { interest: "唱歌" }
+	}
+)
 ```
 
-代码描述：查询 name 为张三的记录，并在 interest 中追加 爬山 
-
-##### $addToSet
+### $addToSet
 
 给数组添加或者设置一个值
 
 ```js
 { $addToSet: { <field1>: <value1>, ... } }
 ```
-
-##### $set
-
-更新字段
-
-```js
-{ $set: { <field1>: <value1>, ... } }
-```
-
-```mysql
-db.users.updateOne({name:'张三'}, {$set: { sex : "女" }})
-```
-
-代码解读：查询 name 为张三的记录，并将其 sex 字段更新为 女。
 
 ## 4. 删除文档
 
@@ -568,133 +492,111 @@ db.COLLECTION_NAME.deleteOne(query)
 db.COLLECTION_NAME.deleteMany(query)
 ```
 
-# 五、聚合
+# 五、聚合管道 - 核心
 
 [聚合管道操作符 >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
 
-查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：聚合管道查询 → [aggregation >>](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
+查询文档可以使用 `.find()` 方法，这里主要推荐高级用法：聚合管道查询 → [aggregation >>](https://www.mongodb.com/docs/manual/aggregation/)
 
-基于数据处理的聚合管道，每个文档通过一个由多个阶段（`stage`）组成的管道，可以对每个阶段的管道进行分组、过滤等功能，然后经过一系列的处理，输出相应的结果。
+聚合管道由一个或多个处理文档的阶段组成：
 
-通过这张图，可以了解Aggregate处理的过程：
+- 每个阶段对输入文档执行一个操作。例如，一个stage可以过滤文档、分组文档和计算值。
+- 从一个阶段输出的文档被传递到下一个阶段。
+- 聚合管道可以返回文档组的结果。例如，返回总和、平均值、最大值和最小值。
+
+通过这张图，可以了解Aggregate处理的过程
 
 <img src="./images/aggregation.png" style="zoom:70%;" />
 
+## 1. Apis
 
+聚合管道主要包含如下API：
 
-聚合主要用于处理数据（诸如统计平均值，求和等），并返回计算后的数据结果。聚合管道主要包含如下API：
-
-| 命令         | 功能描述                                                     |
-| ------------ | ------------------------------------------------------------ |
-| *`$match`*   | 用于过滤数据，只输出符合条件的文档，与 `find()` 类似，基于MongoDB的标准查询操作 |
-| *`$project`* | 修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档 |
-| *`$skip`*    | 在聚合管道中跳过指定数量的文档                               |
-| *`$limit`*   | 用来限制MongoDB聚合管道返回的文档数                          |
-| *`$unwind`*  | 将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值 |
-| *`$group`*   | 将集合中的文档分组，可用于统计结果                           |
-| *`$lookup`*  | 引入其他集合的数据（表关联查询）                             |
-| *`$sort`*    | 将输入文档排序后输出 *`1`：升序，`-1`：降序，默认为升序显示* |
+| 命令                                                         | 功能描述                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [`$match`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/#mongodb-pipeline-pipe.-match) | 用于过滤数据，只输出符合条件的文档，与 `find()` 类似，基于MongoDB的标准查询操作 |
+| [`$group`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/#mongodb-pipeline-pipe.-group) | 将集合中的文档分组，可用于统计结果                           |
+| [`$project`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/project/#mongodb-pipeline-pipe.-project) | 修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档 |
+| [`$skip`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/skip/#mongodb-pipeline-pipe.-skip) | 在聚合管道中跳过指定数量的文档                               |
+| [`$limit`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/limit/#mongodb-pipeline-pipe.-limit) | 用来限制MongoDB聚合管道返回的文档数                          |
+| [`$unwind`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/unwind/#mongodb-pipeline-pipe.-unwind) | 将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值 |
+| [`$lookup`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#mongodb-pipeline-pipe.-lookup) | 引入其他集合的数据（表关联查询）                             |
+| [`$sort`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/#mongodb-pipeline-pipe.-sort) | 将输入文档排序后输出 *`1`：升序，`-1`：降序，默认为升序显示* |
 
 > **Tips：**同样的操作符以及条件, 不同的排列顺序对查询结果会有影响
 
-插入测试数据：
+## 2. 单一用途聚合方法
+
+单一用途聚合方法从单个集合聚合文档。这些方法很简单，但缺乏聚合管道的功能。
+
+- [`db.collection.count()`](https://www.mongodb.com/docs/manual/reference/method/db.collection.count/#mongodb-method-db.collection.count)：返回集合或视图中文档数量的计数
+
+## 3. 扩展示例
+
+### 统计不同车型销量
+
+这个示例主要从订单列表中过滤额B型车，并统计各具体车型的销量，首先我们插入数据：
 
 ```mysql
-db.users.insertMany([
-  {"name":"张三", "sex": "男", "age": 31, "phone": "15666666666", "job":"前端工程师", "interest": ["烹饪", "运动"]},
-  {"name":"李四", "sex": "女", "age": 16, "phone": "15777777777", "job":"后端工程师", "interest": ["追剧", "旅行"]},
-  {"name":"赵二", "sex": "男", "age": 28, "phone": "15888888888", "job":"测试工程师", "interest": ["游戏", "摄影"]},
-  {"name":"王五", "sex": "女", "age": 38, "phone": "15999999999", "job":"运维工程师", "interest": ["运动", "旅行"]}
+db.examples.insertMany([
+	{ name: "本田思域", level: "A", orderNums: 3, date: "2022/01/01" },
+	{ name: "本田雅阁", level: "B", orderNums: 6, date: "2022/01/01" },
+	{ name: "别克英朗", level: "B", orderNums: 2, date: "2022/01/02" },
+	{ name: "日产轩逸", level: "B", orderNums: 8, date: "2022/01/03" },
+	{ name: "本田雅阁", level: "B", orderNums: 1, date: "2022/01/04" },
+	{ name: "本田思域", level: "A", orderNums: 2, date: "2022/01/05" },
+	{ name: "本田雅阁", level: "B", orderNums: 3, date: "2022/01/05" },
+	{ name: "别克英朗", level: "B", orderNums: 3, date: "2022/01/05" },
+	{ name: "本田思域", level: "A", orderNums: 8, date: "2022/01/06" },
+	{ name: "本田雅阁", level: "B", orderNums: 1, date: "2022/01/06" },
+	{ name: "日产轩逸", level: "B", orderNums: 5, date: "2022/01/07" },
+	{ name: "本田思域", level: "A", orderNums: 6, date: "2022/01/08" },
 ])
 ```
 
-## $match
-
-*`$match`* 用于过滤数据，只输出符合条件的文档
-
-```markdown
-# 1. 查询所有
-db.users.aggregate() 
-# 2. 查询 name = '张三' 的数据
-db.users.aggregate([{ $match: { name: '张三' } }])
-# 3. 查询年龄大于30的数据
-db.users.aggregate([{ $match: { age: { $gt: 30 } } }])
-```
-
-## $project
-
-*`$project`* 指定输出文档里的字段，`1` 为显示，`0` 为不显示，除 `_id` 外，其他任意字段之间 **不可以** `0` 和 `1` 混用！
+执行代码：
 
 ```mysql
-db.users.aggregate([
-    { $match: { name: "张三" } },
-    { $project: { _id: 0, id: "$_id", name: 1, job: 1} }
+db.examples.aggregate([
+    // Stage 1：过滤B型车
+    { $match: { level: "B" } },
+    // Stage 2：按照具体车型(name)分组，并计算销量(orderNums)
+    { $group: { _id: "$name", totalOrderNums: {$sum: "$orderNums" }  }},
+		// State 3：格式化输出，将 _id 重命名为 name 输出
+		{ $project: { _id: 0, name: "$_id", totalOrderNums: 1  }}		
 ])
 ```
+
+- `$match` statge：
+  - 将订单记录过滤为B级车型的的数据
+  - 将剩余的文档传递到$group阶段。
+- `$group` stage：
+  - 将其余文档按车型名称 `name` 分组。
+  - 使用 `$sum` 计算每个车型名称的总订单量。总数存储在聚合管道返回的 `totalOrderNums` 字段中。
+- `$project` stage：
+  - 指定输出文档，隐藏 `_id`，并将 `name` 指向 `_id` 显示。
 
 输出结果：
 
-```json
-{ 
-  name: '张三',
-  job: '前端工程师',
-  id: ObjectId("6281c0e0d73b9db975426f2e") 
-}
-```
-
-### \$skip、\$limit、$sort
-
-列表分页一般会联合这三个操作符使用，其中
-
-- *`$skip`*：指定跳过多少条记录
-- *`$limit`*：每次查询条数
-
-- *`$sort`*：排序 
-
-> **Tips：**skip 的计算方式：(当前页码-1)*每页大小 如：`(pageIndex - 1) * pageSize`
-
-```mysql
-db.users.aggregate([
-    { $match: {} },
-    { $skip: 1 },   
-    { $limit: 3 },  
-    { $sort: { age: -1 } }
-])
-```
-
-#### $lookup
-
-[$lookup](https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/) 表关联查询，语法结构如下：
-
-```
+```js
+// 1
 {
-   $lookup:
-     {
-       from: <collection to join>,
-       localField: <field from the input documents>,
-       foreignField: <field from the documents of the "from" collection>,
-       as: <output array field>
-     }
+    "totalOrderNums": 5,
+    "name": "别克英朗"
+}
+
+// 2
+{
+    "totalOrderNums": 13,
+    "name": "日产轩逸"
+}
+
+// 3
+{
+    "totalOrderNums": 11,
+    "name": "本田雅阁"
 }
 ```
-
-参数解读：
-
-- `from`：同一个数据库下等待被Join的集合
-- `localField`：源集合中的match值
-- `foreignField`：待Join集合中的match值
-- `as`：输出字段
-
-## **4）联合查询**
-
-```markdown
-# 1. and 查询，即指定多个键值
-db.COLLECTION_NAME.find({ field1: value1, field2: value2 })
-# 2. or 查询
-db.COLLECTION_NAME.find({ $or: [{field1: value1}, {field2:value2} ] })
-```
-
-## 扩展示例
 
 ### 查询指定用户的排名
 
@@ -731,10 +633,6 @@ db.users.aggregate([
 	{ $project: { total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  Object(id值)] }}}
 ])
 ```
-
-
-
-
 
 # 六、 索引
 
@@ -842,13 +740,94 @@ MongoDB会自动对speciality字段的数据进行分词，然后我们就可以
 > db.heros.find({$text:{$search:"突进"}})
 ```
 
+# 七、用户管理
 
+1）基础命令
 
-# 六、内置运算符
+```markdown
+# 1. 创建用户
+db.createUser({user:'账号', pwd:'密码', roles:[{role:'角色名', db: '数据库名'}]})
+# 2. 查看用户
+db.getUsers()
+# 3. 移除用户
+db.dropUser("用户名")
+# 4. 用户登陆
+db.auth(user, pwd) 
+# 5. 修改用户密码
+db.changeUserPassword('用户名', '新密码')
+```
+
+代码示例：
+
+```mysql
+# 创建超级用户
+> use admin
+> db.createUser({user:'root', pwd:'123', roles:[{role:'root', db: 'admin'}]})
+# 创建普通用户
+> db.createUser({user:'lee', pwd:'123', roles:[{role:'readWrite', db: 'DB-TEST'}]})
+```
+
+> 提示：创建普通用户时需先登陆超级用户再创建。
+
+2）角色分类
+
+- 数据库用户角色：`read`、`readWrite`
+- 数据库管理员角色：`dbAdmin`、`dbOwner`、`userAdmin`
+- 集群管理员角色：`clusterAdmin`、`clusterManager`、`clusterMonitor`、`hostManager`
+- 备份和恢复角色：`backup`、`restore`
+- 所有数据库角色：`readAnyDatabase`、`readWriteAnyDatabase`、`userAdminAnyDatabase`、`dbAdminAnyDatabase`
+- 超级用户角色：`root`
+
+3）角色功能
+
+- `read`：允许用户读取指定数据库
+- `readWrite`：允许用户读写指定数据库
+- `readAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读权限
+- `readWriteAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的读写权限
+- `dbAdmin`：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问`system.profile`
+- `dbAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`dbAdmin`权限。
+- `userAdmin`：允许用户向`system.users`集合写入，可以找指定数据库里创建、删除和管理用户
+- `userAdminAnyDatabase`：只在`admin`数据库中可用，赋予用户所有数据库的`userAdmin`权限
+- `clusterAdmin`：只在`admin`数据库中可用，赋予用户所有分片和复制集相关函数的管理权限。
+- `root`：只在`admin`数据库中可用。超级账号，超级权限
+
+# 八、内置运算符
 
 [参考指南 >>](https://docs.mongoing.com/can-kao/yun-suan-fu)
 
-# 七、可视化工具
+## 附录1：查询操作符
+
+- `$in`：查询值为指定集合中某个元素时
+- `$nin`：查询值不为指定集合中某个元素时
+- `$gt[e]`：大于[等于]某个值
+- `$lt[e]`：小于[等于]某个值
+- `$ne`：不等于某个值
+- `$or`：或查询
+- `$all`：匹配所有
+
+## 附录2：[更新操作符 >>](https://www.mongodb.com/docs/manual/reference/operator/update/)
+
+### Fields
+
+- `$currentDate`：将字段的值设置为当前日期，可以是日期或时间戳。*
+- `$inc`：将字段的值增加/累加指定数量。*
+- `$min`：仅当指定值小于现有字段值时才更新字段。
+- `$max`：仅当指定值大于现有字段值时才更新字段。
+- `$mul`：将字段的值乘以指定的量。
+- `$rename`：重命名一个字段。
+- `$set`：设置文档中某个字段的值。*
+- `$setOnInsert`：从文档中插入指定的字段。
+- `$unset`：从文档中移除指定的字段。
+
+### Array
+
+- `$push`：向数组中添加一个项。
+- `$pop`：移除数组的第一项或最后一项。
+- `$pull`：删除与指定查询匹配的所有数组元素。
+- `$pull`：从数组中移除所有匹配的值。
+- `$addToSet`：仅当数组中不存在元素时，才向数组中添加元素。
+
+# 九、可视化工具
 
 1. [前往下载 Nacicat Premium >>](https://www.navicat.com.cn/products/navicat-premium)
 2. [前往下载 MongoDB Compass >>](https://www.mongodb.com/try/download/compass)
@@ -858,7 +837,7 @@ MongoDB会自动对speciality字段的数据进行分词，然后我们就可以
 
 - [Navicat Premium 16.0.10 破解安装指南 >>](https://cloud.tencent.com/developer/article/1953103)
 
-# 八、扩展
+# 十、扩展
 
 ## 1. 忘记密码
 
