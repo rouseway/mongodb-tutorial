@@ -522,6 +522,7 @@ db.COLLECTION_NAME.deleteMany(query)
 | [`$unwind`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/unwind/#mongodb-pipeline-pipe.-unwind) | 将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值 |
 | [`$lookup`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/#mongodb-pipeline-pipe.-lookup) | 引入其他集合的数据（表关联查询）                             |
 | [`$sort`](https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/#mongodb-pipeline-pipe.-sort) | 将输入文档排序后输出 *`1`：升序，`-1`：降序，默认为升序显示* |
+| [`$rank`](https://www.mongodb.com/docs/v5.0/reference/operator/aggregation/rank/#mongodb-group-grp.-rank) / [`$denseRank`](https://www.mongodb.com/docs/v5.0/reference/operator/aggregation/denseRank/#mongodb-group-grp.-denseRank) | 排名查询                                                     |
 
 > **Tips：**同样的操作符以及条件, 不同的排列顺序对查询结果会有影响
 
@@ -533,46 +534,48 @@ db.COLLECTION_NAME.deleteMany(query)
 
 ## 3. 扩展示例
 
-### 统计不同车型销量
+### 示例1：兰州拉面订单统计
 
-这个示例主要从订单列表中过滤额B型车，并统计各具体车型的销量，首先我们插入数据：
+插入示例数据：
 
 ```mysql
 db.examples.insertMany([
-	{ name: "本田思域", level: "A", orderNums: 3, date: "2022/01/01" },
-	{ name: "本田雅阁", level: "B", orderNums: 6, date: "2022/01/01" },
-	{ name: "别克英朗", level: "B", orderNums: 2, date: "2022/01/02" },
-	{ name: "日产轩逸", level: "B", orderNums: 8, date: "2022/01/03" },
-	{ name: "本田雅阁", level: "B", orderNums: 1, date: "2022/01/04" },
-	{ name: "本田思域", level: "A", orderNums: 2, date: "2022/01/05" },
-	{ name: "本田雅阁", level: "B", orderNums: 3, date: "2022/01/05" },
-	{ name: "别克英朗", level: "B", orderNums: 3, date: "2022/01/05" },
-	{ name: "本田思域", level: "A", orderNums: 8, date: "2022/01/06" },
-	{ name: "本田雅阁", level: "B", orderNums: 1, date: "2022/01/06" },
-	{ name: "日产轩逸", level: "B", orderNums: 5, date: "2022/01/07" },
-	{ name: "本田思域", level: "A", orderNums: 6, date: "2022/01/08" },
+	{ name: "孜然牛肉拌面", size: "中份", nums: 3, price: 16, date: "2022/01/01" },
+	{ name: "红烧牛肉拌面", size: "中份", nums: 2, price: 16, date: "2022/01/01" },
+	{ name: "葱爆牛肉拌面", size: "小份", nums: 6, price: 14, date: "2022/01/01" },
+	{ name: "葱爆牛肉拌面", size: "大份", nums: 3, price: 18, date: "2022/01/02" },
+	{ name: "辣子鸡块拌面", size: "中份", nums: 9, price: 16, date: "2022/01/02" },
+	{ name: "青椒炒蛋拌面", size: "中份", nums: 2, price: 13, date: "2022/01/02" },
+	{ name: "洋葱炒肉拌面", size: "中份", nums: 4, price: 14, date: "2022/01/02" },
+	{ name: "孜然牛肉拌面", size: "小份", nums: 3, price: 14, date: "2022/01/03" },
+	{ name: "肉末茄子拌面", size: "中份", nums: 5, price: 14, date: "2022/01/03" },
+	{ name: "红烧牛肉拌面", size: "中份", nums: 2, price: 16, date: "2022/01/04" },
+	{ name: "肉末茄子拌面", size: "中份", nums: 8, price: 16, date: "2022/01/04" },
+	{ name: "孜然牛肉拌面", size: "中份", nums: 1, price: 16, date: "2022/01/04" },
 ])
 ```
+
+#### 统计中份拌面各类型的销售份数
 
 执行代码：
 
 ```mysql
 db.examples.aggregate([
-    // Stage 1：过滤B型车
-    { $match: { level: "B" } },
-    // Stage 2：按照具体车型(name)分组，并计算销量(orderNums)
-    { $group: { _id: "$name", totalOrderNums: {$sum: "$orderNums" }  }},
+    // Stage 1：过滤中份拌面
+    { $match: { size: "中份" } },
+    // Stage 2：按照拌面类型(name)分组，并计算销量(nums)
+    { $group: { _id: "$name", totalNums: {$sum: "$nums" }  }},
 		// State 3：格式化输出，将 _id 重命名为 name 输出
-		{ $project: { _id: 0, name: "$_id", totalOrderNums: 1  }}		
+		{ $project: { _id: 0, name: "$_id", totalNums: 1  }}		
 ])
 ```
 
 - `$match` statge：
-  - 将订单记录过滤为B级车型的的数据
+  - 将订单记录过滤为 **中份** 的数据
   - 将剩余的文档传递到$group阶段。
 - `$group` stage：
-  - 将其余文档按车型名称 `name` 分组。
-  - 使用 `$sum` 计算每个车型名称的总订单量。总数存储在聚合管道返回的 `totalOrderNums` 字段中。
+  - 将其余文档按拌面名称 `name` 分组。
+  - 使用 `$sum` 计算每个拌面名称的总订单量。总数存储在聚合管道返回的 `totalOrderNums` 字段中。
 - `$project` stage：
   - 指定输出文档，隐藏 `_id`，并将 `name` 指向 `_id` 显示。
 
@@ -580,47 +583,70 @@ db.examples.aggregate([
 
 ```js
 // 1
-{
-    "totalOrderNums": 5,
-    "name": "别克英朗"
-}
+{ "name": "孜然牛肉拌面", "totalNums": 7 }
 
 // 2
-{
-    "totalOrderNums": 13,
-    "name": "日产轩逸"
-}
+{ "name": "洋葱炒肉拌面", "totalNums": 4 }
 
 // 3
-{
-    "totalOrderNums": 11,
-    "name": "本田雅阁"
-}
+{ "name": "红烧牛肉拌面", "totalNums": 4 }
+
+// 4
+{ "name": "辣子鸡块拌面", "totalNums": 11}
+
+// 5
+{ "name": "肉末茄子拌面", "totalNums": 13}
 ```
 
-### 查询指定用户的排名
+#### 计算总订单值和平均订单数量
+
+测试数据
+
+```mysql
+db.examples.aggregate([
+    // Stage 1：过滤中份拌面
+    { $match: { size: "中份" } },
+    // Stage 2：根据日期进行分组，然后统计当天的销售总额和平均卖出的份数
+    { $group: { 
+				_id: "$date", 
+				totalOrderPrice: {$sum: { $multiply: [ "$price", "$nums" ] } },
+				averageOrderNums: { $avg: "$nums" }
+		}},
+		// Stage 3：结果降序输出		
+		{ $sort: { totalOrderPrice: -1 }}	
+])
+```
+
+### 示例2：排名
+
+示例数据：
+
+```mysql
+db.examples.insertMany([
+  {name: "刘德华", sex: "男", age: 64, score: 93 },
+	{name: "周杰伦", sex: "男", age: 39, score: 90 },
+	{name: "林俊杰", sex: "男", age: 36, score: 88 },
+	{name: "罗志祥", sex: "男", age: 34, score: 60 },
+	{name: "蔡依林", sex: "女", age: 35, score: 76 },
+	{name: "王力宏", sex: "男", age: 38, score: 84 },
+	{name: "张学友", sex: "男", age: 65, score: 90 },
+	{name: "邓紫棋", sex: "女", age: 35, score: 88 },
+])
+```
+
+#### 查询指定用户的排名
 
 思路：排序 → 查找
 
 聚合：`$indexOfArray` / `$group` / `$project `
 
-```mysql
-db.users.insertMany([
-	{name: "周杰伦", sex: "男", age: 39, score: 90 },
-	{name: "林俊杰", sex: "男", age: 36, score: 88 },
-	{name: "罗志祥", sex: "男", age: 34, score: 60 },
-	{name: "蔡依林", sex: "女", age: 35, score: 76 },
-	{name: "王力宏", sex: "男", age: 38, score: 84 }
-])
-```
-
-查询王力宏的排名：
+需求：查询王力宏的排名
 
 ```mysql
-db.users.aggregate([
+db.examples.aggregate([
 	{ $sort: { score: -1 }}, 
 	{ $group: { _id: null, all: { $push: "$name" }} }, 
-	{ $project: { total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  "王力宏"] }}}
+	{ $project: { _id: 0, total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  "王力宏"] }}}
 ])
 ```
 
@@ -630,7 +656,30 @@ db.users.aggregate([
 db.users.aggregate([
 	{ $sort: { score: -1 }}, 
 	{ $group: { _id: null, all: { $push: "$_id" }} }, 
-	{ $project: { total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  Object(id值)] }}}
+	{ $project: { _id: 0, total: { $size: "$all" }, rank: { $indexOfArray: ["$all",  Object(id值)] }}}
+])
+```
+
+#### $rank
+
+```mysql
+db.examples.aggregate([
+	{
+		$setWindowFields: {
+			// 根据sex分组排名，即男生和男生排名，女生和女生排名
+			partitionBy: "$sex",
+			// 根据score排序，排名依据
+			sortBy: { score: -1 },
+			// 输出排名
+			output: {
+				// 排名显示字段名
+				rankScoreForSex: {
+						// 并列名字排名
+						$denseRank: {}
+				}
+			}
+		}
+	},
 ])
 ```
 
