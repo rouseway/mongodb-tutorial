@@ -683,6 +683,207 @@ db.examples.aggregate([
 ])
 ```
 
+### 示例3：关联查询
+
+现有如下两张表：
+
+```ini
+# schools表
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": ObjectId("62952860f542cf6c844e3133"),
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001"
+}
+# students表
+{ "_id": ObjectId("62952860f542cf6c844e3133"), "name": "张三", "phone": "15666666666", "major": "软件工程" },
+{ "_id": ObjectId("62952860f542cf6c844e3134"), "name": "李四", "phone": "15777777777", "major": "电子商务" },
+{ "_id": ObjectId("62952860f542cf6c844e3135"), "name": "赵二", "phone": "15888888888", "major": "网络工程" }
+```
+
+查询 `schools` 表，并根据 `studentId` 查询学生表：
+
+#### 关联字段类型一致时
+
+```mysql
+db.schools.aggregate([
+	{ $match: {} },
+	{ $lookup: { 
+		from: "students", 
+		localField: "studentId",
+		foreignField: "_id",
+		as: "student"
+	}}
+])
+```
+
+查询结果：
+
+```json
+// 1
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": ObjectId("62952860f542cf6c844e3133"),
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001",
+    "student": [
+        {
+            "_id": ObjectId("62952860f542cf6c844e3133"),
+            "name": "张三",
+            "phone": "15666666666",
+            "major": "软件工程"
+        }
+    ]
+}
+```
+
+> **！提示**：由以上的分析可知，关联查询时如果两个表的字段类型一致，可以直接使用 `$lookup` 进行关联查询操作。
+
+#### 关联字段类型不一致时
+
+现在将上述示例中 `schools` 表中的数据改为如下：
+
+```json
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": "62952860f542cf6c844e3133", // studentId为string类型
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001"
+}
+```
+
+现在，`schools` 表中的 `studentId` 类型为 `string` 类型，而学生表中的 `_id`为 `ObjectId` 类型。对于这种情况下如果还是使用上述的方式来查询数据，查询到的结果为：
+
+```json
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": "62952860f542cf6c844e3133",
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001",
+    "student": [ ]
+}
+```
+
+这种情况下需要使用 `$addFields`，具体使用如下：
+
+```mysql
+db.schools.aggregate([
+	{ $match: {} },
+	{ $addFields: { stuId: { $toObjectId: "$studentId" } }},
+	{ $lookup: { 
+		from: "students", 
+		localField: "stuId",
+		foreignField: "_id",
+		as: "student"
+	}}
+])
+```
+
+> **！提示**：如果是 `ObjectId` 转化为 `String`，将 `$toObjectId` 改为 `$toString`。
+
+执行结果如下：
+
+```json
+// 1
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": ObjectId("62952860f542cf6c844e3133"),
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001",
+    "stuId": ObjectId("62952860f542cf6c844e3133"),
+    "student": [
+        {
+            "_id": ObjectId("62952860f542cf6c844e3133"),
+            "name": "张三",
+            "phone": "15666666666",
+            "major": "软件工程"
+        }
+    ]
+}
+```
+
+#### 展开关联数据
+
+对于上述的操作还有一个问题，由于在上述的操作中关联查询之后的 `student` 为一个数组，如果不想使用数组的方式呈现，可以使用 `$unwind` 将数组打散来呈现，具体操作如下：
+
+```mysql
+db.schools.aggregate([
+	{ $match: {} },
+	{ $addFields: { stuId: { $toObjectId: "$studentId" } }},
+	{ $lookup: { 
+		from: "students", 
+		localField: "stuId",
+		foreignField: "_id",
+		as: "student"
+	}},
+	{ $unwind: "$student" }
+])
+```
+
+呈现的效果如下：
+
+```json
+// 1
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "studentId": ObjectId("62952860f542cf6c844e3133"),
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001",
+    "stuId": ObjectId("62952860f542cf6c844e3133"),
+    "student": {
+        "_id": ObjectId("62952860f542cf6c844e3133"),
+        "name": "张三",
+        "phone": "15666666666",
+        "major": "软件工程"
+    }
+}
+```
+
+但是这样的话，原本只有一条数据，但是拆分以后获取到的数据个数就是 `student` 数组中元素的个数，在实际使用中可以根据具体情况来选择！在实际开发中，我们可能希望把 `student` 中的字段再次打散，使其和 `student` 数据结构在同一级别，这是我们可以通过 `$project` 实现，操作如下：
+
+```mysql
+db.schools.aggregate([
+	{ $match: {} },
+	{ $addFields: { stuId: { $toObjectId: "$studentId" } }},
+	{ $lookup: { 
+		from: "students", 
+		localField: "stuId",
+		foreignField: "_id",
+		as: "student"
+	}},
+	{ $unwind: "$student" },
+	{ $project: { 
+		stuName: "$student.name",  
+		stuPhone: "$student.phone",
+		stuMajor: "$student.major",
+		name: 1,
+		address: 1,
+		phone: 1
+	}}
+])
+```
+
+此时，呈现结果为：
+
+```json
+// 1
+{
+    "_id": ObjectId("62952aa6f542cf6c844e3136"),
+    "name": "成都东软学院",
+    "address": "四川省成都市都江堰市青城山区东软大道1号",
+    "phone": "028-64888001",
+    "stuName": "张三",
+    "stuPhone": "15666666666",
+    "stuMajor": "软件工程"
+}
+```
+
 # 六、 索引
 
 ### 6.1. 概述
